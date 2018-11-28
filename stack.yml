@@ -1,0 +1,25 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  faas-flow-dashboard:
+    lang: Dockerfile
+    handler: ./gateway
+    image: s8sg/faas-flow-gateway:0.1.0
+    environment_file:
+      - gateway_config.yml
+
+  list-flow-functions:      
+    lang: go
+    handler: ./list-flow-functions
+    image: s8sg/list-flow-functions:1.0.0
+    environment:
+      write_debug: true
+      read_debug: true
+      basic_auth: false
+    environment_file:
+      - gateway_config.yml
+    secrets:
+      - basic-auth-user
+      - basic-auth-password
