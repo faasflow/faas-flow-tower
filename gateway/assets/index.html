@@ -46,11 +46,21 @@
 
         <!-- Page Content -->
         <div id="page-content-wrapper" style="visibility: hidden">
-            <div class="container-fluid">
-                <h1 id="function-name">Unknown</h1>
-		<div id="graph" style="width: 90vw; height: 30vh; margin: 5; overflow: hidden;" class="border border-secondary img-fluid img-thumbnail shadow-sm p-3 mb-5 bg-white rounded"> </div>
-		<div id="about">
+            <div class="card border border-dark" style="width: 70vw;">
+		<div id="graph" style="width: 69.85vw; height: 30vh; overflow: hidden;" align="center" class="border border-secondary rounded card-img-top"> </div>
+		<div class="card-body bg-light">
+                   <h2 id="flow-name" class="card-title">Flow Name</h1>
+		   <p id="flow-desc" class="card-text">
+		   Flow Description
+		   </p>
 		</div>
+		<ul class="list-group list-group-flush">
+    		   <li class="list-group-item" id="exec-count">Execution Count: </li>
+                   <li class="list-group-item" id="replica-count">Replicas: </li>
+                </ul>
+		<div class="card-body">
+    		   <a id="link" href="#" class="card-link btn btn-info">Execute</a>
+  		</div>
             </div>
         </div>
         <!-- /#page-content-wrapper -->

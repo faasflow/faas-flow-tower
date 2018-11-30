@@ -7,7 +7,6 @@ function getServer() {
         var protocol = location.protocol;
         var slashes = protocol.concat("//");
         server = slashes.concat(window.location.hostname);
-        server = server.concat("/function/faas-flow-dashboard");
     }
     return server;
 };
@@ -37,15 +36,28 @@ function updateContent(jsonObject) {
     var count = jsonObject["invocationCount"];
     var replicas = jsonObject["replicas"];
     var dag = jsonObject["dag"];
+    var description = "No flow description provided. Use faas-flow-desc in lebels";
+
+    var url = getServer();
+    url = url.concat("/function/" + name);
+
+    // Remove welcome body if present
     d3.select("#welcome").remove();
-    d3.select("#function-name").text(name);
+
+    d3.select("#flow-name").text(name);
+    d3.select("#flow-desc").text(description);
+    d3.select("#exec-count").text("Execution Count: " + count);
+    d3.select("#replica-count").text("Replicas: " + replicas);
+    d3.select("#link").attr("href", url);
+    // remove and render new graph
     d3.select("#graph").selectAll("*").remove();
-    d3.select("#page-content-wrapper").style("visibility", "visible");
     var graphviz = d3.select("#graph")
      .graphviz()
      .tweenShapes(false)
      .attributer(attributer)
      .renderDot(dag);
+    
+    d3.select("#page-content-wrapper").style("visibility", "visible");
 };
 
 // Add event listener to all faas-flow function
@@ -53,6 +65,7 @@ document.getElementsByName("function-switch").forEach(function(elem) {
     elem.addEventListener("click", function(event) {
          var functionId = elem.getAttribute("id");
          var url = getServer();
+         url = url.concat("/function/faas-flow-dashboard");
 
          var reqData = {};
          reqData["method"] = "flow";
