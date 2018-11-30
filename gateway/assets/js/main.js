@@ -37,9 +37,10 @@ function updateContent(jsonObject) {
     var count = jsonObject["invocationCount"];
     var replicas = jsonObject["replicas"];
     var dag = jsonObject["dag"];
-    d3.select("#about").remove();
+    d3.select("#welcome").remove();
     d3.select("#function-name").text(name);
     d3.select("#graph").selectAll("*").remove();
+    d3.select("#page-content-wrapper").style("visibility", "visible");
     var graphviz = d3.select("#graph")
      .graphviz()
      .tweenShapes(false)
