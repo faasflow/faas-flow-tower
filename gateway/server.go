@@ -85,7 +85,6 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		method := msg.Method
-		log.Printf("requsted method: " + method)
 
 		switch method {
 
@@ -160,7 +159,7 @@ func listFunction() ([]*Function, error) {
 			functions := []*Function{}
 			mErr := json.Unmarshal(bodyBytes, &functions)
 			if mErr != nil {
-				log.Fatal(mErr)
+				return nil, fmt.Errorf("failed to get function list, %v", mErr)
 			}
 
 			return functions, nil
