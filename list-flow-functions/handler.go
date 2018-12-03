@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -22,12 +21,9 @@ func Handle(req []byte) string {
 
 	httpReq, _ := http.NewRequest(http.MethodGet, gatewayURL+"system/functions", nil)
 
-	basicAuth := os.Getenv("basic_auth")
-	if strings.ToUpper(basicAuth) == "TRUE" {
-		addAuthErr := sdk.AddBasicAuth(httpReq)
-		if addAuthErr != nil {
-			log.Printf("Basic auth error %s", addAuthErr)
-		}
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		log.Printf("Basic auth error %s", addAuthErr)
 	}
 
 	response, err := c.Do(httpReq)
