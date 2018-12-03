@@ -1,3 +1,5 @@
 environment:
   gateway_url: "http://gateway:8080/"
   gateway_public_uri: "http://localhost:8080"
+  basic_auth: true
+  secret_mount_path: "/var/openfaas/secrets"

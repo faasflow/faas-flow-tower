@@ -17,7 +17,7 @@ functions:
     environment:
       write_debug: true
       read_debug: true
-      basic_auth: false
+      combine_output: false
     environment_file:
       - gateway_config.yml
     secrets:
