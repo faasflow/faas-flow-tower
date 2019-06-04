@@ -15,17 +15,19 @@ function getServer() {
 function attributer(datum, index, nodes) {
     var selection = d3.select(this);
     if (datum.tag == "svg") {
-        var width = window.innerWidth;
-        var height = window.innerHeight;
+        var width = window.innerWidth * 0.6;
+        var height = window.innerHeight/2;
         var x = 0;
         var y = 0;
-        var scale = 1.0;
+        var scale = 0.5;
         selection
             .attr("width", width + "pt")
             .attr("height", height + "pt")
             .attr("viewBox", -x + " " + -y + " " + (width / scale) + " " + (height / scale));
         datum.attributes.width = width + "pt";
         datum.attributes.height = height + "pt";
+	console.log(datum.attributes.width)
+	console.log(datum.attributes.height)
         datum.attributes.viewBox = -x + " " + -y + " " + (width / scale) + " " + (height / scale);
     }
 };
