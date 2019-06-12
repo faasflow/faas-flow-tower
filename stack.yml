@@ -5,7 +5,7 @@ provider:
 functions:
   faas-flow-dashboard:
     lang: Dockerfile
-    handler: ./gateway
+    handler: ./dashboard
     image: s8sg/faas-flow-gateway:0.1.0
     environment_file:
       - gateway_config.yml

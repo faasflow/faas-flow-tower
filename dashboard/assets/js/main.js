@@ -16,18 +16,16 @@ function attributer(datum, index, nodes) {
     var selection = d3.select(this);
     if (datum.tag == "svg") {
         var width = window.innerWidth * 0.6;
-        var height = window.innerHeight/2;
+        var height = window.innerHeight * 0.5;
         var x = 0;
         var y = 0;
-        var scale = 0.5;
+        var scale = 0.3;
         selection
             .attr("width", width + "pt")
             .attr("height", height + "pt")
             .attr("viewBox", -x + " " + -y + " " + (width / scale) + " " + (height / scale));
         datum.attributes.width = width + "pt";
         datum.attributes.height = height + "pt";
-	console.log(datum.attributes.width)
-	console.log(datum.attributes.height)
         datum.attributes.viewBox = -x + " " + -y + " " + (width / scale) + " " + (height / scale);
     }
 };
@@ -55,14 +53,16 @@ function updateContent(jsonObject) {
     d3.select("#replica-count").text("Replicas: " + replicas);
     d3.select("#link").attr("href", url);
     // remove and render new graph
-    d3.select("#graph").selectAll("*").remove();
-    var graphviz = d3.select("#graph")
+    d3.select("#graph")
+     .selectAll("*")
+     .remove();
+
+    d3.select("#page-content-wrapper").style("visibility", "visible");
+    d3.select("#graph")
      .graphviz()
      .tweenShapes(false)
      .attributer(attributer)
      .renderDot(dag);
-    
-    d3.select("#page-content-wrapper").style("visibility", "visible");
 };
 
 // Add event listener to all faas-flow function
