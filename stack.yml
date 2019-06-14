@@ -23,3 +23,10 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+
+  dot-generator:
+    lang: go
+    handler: ./dot-generator
+    image: dot-generator:latest
+    environment_file:
+      - gateway_config.yml
