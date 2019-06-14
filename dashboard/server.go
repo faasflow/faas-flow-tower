@@ -170,13 +170,13 @@ func listFunction() ([]*Function, error) {
 	return nil, fmt.Errorf("failed to get function list, %v", err)
 }
 
-// getDag request to flow-function for the dag dot graph
+// getDag request to dot-generator for the dag dot graph
 func getDag(function string) (string, error) {
 	var err error
 
 	c := http.Client{}
 
-	request, _ := http.NewRequest(http.MethodGet, gateway_url+"function/"+function+"?generate-dot-graph=true", nil)
+	request, _ := http.NewRequest(http.MethodGet, gateway_url+"function/dot-generator?function="+function, nil)
 	response, err := c.Do(request)
 	if err == nil {
 		defer response.Body.Close()

@@ -30,3 +30,8 @@ functions:
     image: dot-generator:latest
     environment_file:
       - gateway_config.yml
+    environment:
+      read_timeout: 120
+      write_timeout: 120
+      write_debug: true
+      combine_output: false

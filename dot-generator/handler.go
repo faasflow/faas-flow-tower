@@ -35,7 +35,7 @@ const (
 	DYNAMIC_END_COLOR = "pink"
 
 	CONDITION_CLUSTER_BORDER_COLOR = "grey"
-	CONDITION_CLUSTER_STYLE        = "rounded, dashed"
+	CONDITION_CLUSTER_STYLE        = "rounded"
 )
 
 // generateOperationKey generate a unique key for an operation
@@ -261,10 +261,10 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 
 				childOperationKey := ""
 				if nextOperationNode.IsDynamic {
-					if node.IsCondition {
+					if nextOperationNode.IsCondition {
 						childOperationKey = generateOperationKey(nextOperationDag.Id, nextOperationNode.Index, 0, nil, "conditions")
 					}
-					if node.IsForeach {
+					if nextOperationNode.IsForeach {
 						childOperationKey = generateOperationKey(nextOperationDag.Id, nextOperationNode.Index, 0, nil, "foreach")
 					}
 
@@ -274,7 +274,7 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 				}
 
 				if previousOperation != "" {
-					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%sv];",
+					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
 						indent, previousOperation, childOperationKey, EDGE_COLOR))
 				}
 			}
