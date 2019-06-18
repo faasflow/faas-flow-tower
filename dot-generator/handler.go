@@ -13,6 +13,11 @@ import (
 )
 
 const (
+	GRAPH_NODESPEC = 0
+	GRAPH_RANKSPEC = 0
+	GRAPH_PAD      = 1
+	GRAPH_PACK     = 1
+
 	NODE_CLUSTER_BORDER_COLOR = "grey"
 	NODE_CLUSTER_STYLE        = "rounded"
 
@@ -63,16 +68,32 @@ func generateOperationKey(dagId string, nodeIndex int, opsIndex int, operation *
 	return operationKey
 }
 
+// generateOperationLebel generate a operation lebel
+func generateOperationLebel(operation *sdk.OperationExporter) string {
+	operationStr := ""
+	if operation != nil {
+		switch {
+		case operation.IsFunction:
+			operationStr = operation.Name
+		case operation.IsCallback:
+			operationStr = operation.Name
+		default:
+			operationStr = "modifier"
+		}
+	}
+	return operationStr
+}
+
 // generateConditionalDag generate dag element of a condition vertex
 func generateConditionalDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *strings.Builder, indent string) string {
 	// Create a condition vertex
 	conditionKey := generateOperationKey(dag.Id, node.Index, 0, nil, "conditions")
-	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s];",
+	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s label=\"condition\"];",
 		indent, conditionKey, CONDITION_SHAPE, CONDITION_STYLE, CONDITION_COLOR))
 
 	// Create a end operation vertex
 	conditionEndKey := generateOperationKey(dag.Id, node.Index, 0, nil, "end")
-	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s];",
+	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s label=\"end\"];",
 		indent, conditionEndKey, DYNAMIC_END_SHAPE, DYNAMIC_END_STYLE, DYNAMIC_END_COLOR))
 
 	// Create condition graph
@@ -104,11 +125,15 @@ func generateConditionalDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *st
 		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [label=%s color=%s];",
 			indent, conditionKey, operationKey, condition, EDGE_COLOR))
 
-		sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s {", indent, condition))
+		sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s_%d_%s {", indent, dag.Id, node.Index, condition))
 
-		sb.WriteString(fmt.Sprintf("\n%slabel=\"%s.%d-%s\";", indent+"\t", dag.Id, node.Index, condition))
+		sb.WriteString(fmt.Sprintf("\n%slabel=\"%s\";", indent+"\t", condition))
 		sb.WriteString(fmt.Sprintf("\n%scolor=%s;", indent+"\t", CONDITION_CLUSTER_BORDER_COLOR))
 		sb.WriteString(fmt.Sprintf("\n%sstyle=%s;\n", indent+"\t", CONDITION_CLUSTER_STYLE))
+		sb.WriteString(fmt.Sprintf("\n%snodesep=%d;", indent+"\t", GRAPH_NODESPEC))
+		sb.WriteString(fmt.Sprintf("\n%sranksep=%d;", indent+"\t", GRAPH_RANKSPEC))
+		sb.WriteString(fmt.Sprintf("\n%spad=%d;", indent+"\t", GRAPH_PAD))
+		sb.WriteString(fmt.Sprintf("\n%spack=%d;", indent+"\t", GRAPH_PACK))
 
 		previousOperation := generateDag(conditionDag, sb, indent+"\t")
 
@@ -123,16 +148,16 @@ func generateConditionalDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *st
 
 // generateForeachDag generate dag element of a foreach vertex
 func generateForeachDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *strings.Builder, indent string) string {
-	subdag := node.SubDag
+	subdag := node.ForeachDag
 
 	// Create a foreach operation vertex
 	foreachKey := generateOperationKey(dag.Id, node.Index, 0, nil, "foreach")
-	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s];",
+	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s label=\"foreach\"];",
 		indent, foreachKey, FOREACH_SHAPE, FOREACH_STYLE, FOREACH_COLOR))
 
 	// Create a end operation vertex
 	foreachEndKey := generateOperationKey(dag.Id, node.Index, 0, nil, "end")
-	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s];",
+	sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s style=%s color=%s label=\"end\"];",
 		indent, foreachEndKey, DYNAMIC_END_SHAPE, DYNAMIC_END_STYLE, DYNAMIC_END_COLOR))
 
 	// Create Foreach Graph
@@ -165,7 +190,19 @@ func generateForeachDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *string
 		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
 			indent, foreachKey, operationKey, EDGE_COLOR))
 
+		sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s_%d {", indent, dag.Id, node.Index))
+
+		sb.WriteString(fmt.Sprintf("\n%slabel=\"foreach\";", indent+"\t"))
+		sb.WriteString(fmt.Sprintf("\n%scolor=%s;", indent+"\t", CONDITION_CLUSTER_BORDER_COLOR))
+		sb.WriteString(fmt.Sprintf("\n%sstyle=%s;\n", indent+"\t", CONDITION_CLUSTER_STYLE))
+		sb.WriteString(fmt.Sprintf("\n%snodesep=%d;", indent+"\t", GRAPH_NODESPEC))
+		sb.WriteString(fmt.Sprintf("\n%sranksep=%d;", indent+"\t", GRAPH_RANKSPEC))
+		sb.WriteString(fmt.Sprintf("\n%spad=%d;", indent+"\t", GRAPH_PAD))
+		sb.WriteString(fmt.Sprintf("\n%spack=%d;", indent+"\t", GRAPH_PACK))
+
 		previousOperation := generateDag(subdag, sb, indent+"\t")
+
+		sb.WriteString(fmt.Sprintf("\n%s}", indent))
 
 		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
 			indent, previousOperation, foreachEndKey, EDGE_COLOR))
@@ -193,24 +230,18 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 		} else {
 			// Handle non dynamic node
 
-			sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%d {", indent, node.Index))
+			sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s_%d {", indent, dag.Id, node.Index))
+			sb.WriteString(fmt.Sprintf("\n%snodesep=%d;", indent, GRAPH_NODESPEC))
+			sb.WriteString(fmt.Sprintf("\n%sranksep=%d;", indent, GRAPH_RANKSPEC))
+			sb.WriteString(fmt.Sprintf("\n%spad=%d;", indent, GRAPH_PAD))
+			sb.WriteString(fmt.Sprintf("\n%spack=%d;", indent, GRAPH_PACK))
 
 			nodeIndexStr := fmt.Sprintf("%d", node.Index-1)
 
-			// Set label for node cluster
 			if nodeIndexStr != node.Id {
-				if dag.Id != "0" {
-					sb.WriteString(fmt.Sprintf("\n%slabel=\"%s.%d-%s\";", indent+"\t", dag.Id, node.Index, node.Id))
-				} else {
-					sb.WriteString(fmt.Sprintf("\n%slabel=\"%d-%s\";", indent+"\t", node.Index, node.Id))
-				}
+				sb.WriteString(fmt.Sprintf("\n%slabel=\"%s\";", indent+"\t", node.Id))
 			} else {
-				if dag.Id != "0" {
-					sb.WriteString(fmt.Sprintf("\n%slabel=\"%s-%d\";", indent+"\t", dag.Id, node.Index))
-				} else {
-
-					sb.WriteString(fmt.Sprintf("\n%slabel=\"%d\";", indent+"\t", node.Index))
-				}
+				sb.WriteString(fmt.Sprintf("\n%slabel=\"%s\";", indent+"\t", nodeIndexStr))
 			}
 
 			sb.WriteString(fmt.Sprintf("\n%scolor=%s;", indent+"\t", NODE_CLUSTER_BORDER_COLOR))
@@ -223,9 +254,9 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 		} else {
 			for opsindex, operation := range node.Operations {
 				operationKey := generateOperationKey(dag.Id, node.Index, opsindex+1, operation, "")
-
-				sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s color=%s style=%s];",
-					indent+"\t", operationKey, OPERATION_SHAPE, OPERATION_COLOR, OPERATION_STYLE))
+				operationLebel := generateOperationLebel(operation)
+				sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s color=%s style=%s label=\"%s\"];",
+					indent+"\t", operationKey, OPERATION_SHAPE, OPERATION_COLOR, OPERATION_STYLE, operationLebel))
 
 				if previousOperation != "" {
 					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
@@ -294,10 +325,10 @@ func makeDotGraph(root *sdk.DagExporter) string {
 	indent := "\t"
 	sb.WriteString("digraph depgraph {")
 	sb.WriteString(fmt.Sprintf("\n%srankdir=TD;", indent))
-	sb.WriteString(fmt.Sprintf("\n%spack=1;", indent))
-	sb.WriteString(fmt.Sprintf("\n%spad=0;", indent))
-	sb.WriteString(fmt.Sprintf("\n%snodesep=0;", indent))
-	sb.WriteString(fmt.Sprintf("\n%sranksep=0;", indent))
+	sb.WriteString(fmt.Sprintf("\n%snodesep=%d;", indent, GRAPH_NODESPEC))
+	sb.WriteString(fmt.Sprintf("\n%sranksep=%d;", indent, GRAPH_RANKSPEC))
+	sb.WriteString(fmt.Sprintf("\n%spad=%d;", indent, GRAPH_PAD))
+	sb.WriteString(fmt.Sprintf("\n%spack=%d;", indent, GRAPH_PACK))
 	sb.WriteString(fmt.Sprintf("\n%ssplines=curved;", indent))
 	sb.WriteString(fmt.Sprintf("\n%sfontname=\"Courier New\";", indent))
 	sb.WriteString(fmt.Sprintf("\n%sfontcolor=\"#44413b\";", indent))
