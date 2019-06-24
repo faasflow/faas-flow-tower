@@ -116,7 +116,7 @@ func exportNode(exportNode *NodeExporter, node *Node) {
 	exportNode.ChildrenExecOnly = make(map[string]bool)
 	for _, snode := range node.children {
 		exportNode.Childrens = append(exportNode.Childrens, snode.Id)
-		if snode.forwarder[snode.Id] == nil {
+		if node.forwarder[snode.Id] == nil {
 			exportNode.ChildrenExecOnly[snode.Id] = true
 		} else {
 			exportNode.ChildrenExecOnly[snode.Id] = false
