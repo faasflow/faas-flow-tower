@@ -25,7 +25,9 @@ const (
 	OPERATION_COLOR = "\"#68b8e2\""
 	OPERATION_STYLE = "filled"
 
-	EDGE_COLOR = "\"#152730\""
+	EDGE_COLOR      = "\"#152730\""
+	EXEC_EDGE_STYLE = "dotted"
+	DATA_EDGE_STYLE = "solid"
 
 	CONDITION_SHAPE = "diamond"
 	CONDITION_STYLE = "filled"
@@ -122,8 +124,13 @@ func generateConditionalDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *st
 			operationKey = generateOperationKey(nextOperationDag.Id, nextOperationNode.Index, 1, operation, "")
 		}
 
-		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [label=%s color=%s];",
-			indent, conditionKey, operationKey, condition, EDGE_COLOR))
+		edgeStyle := DATA_EDGE_STYLE
+		if node.DynamicExecOnly {
+			edgeStyle = EXEC_EDGE_STYLE
+		}
+
+		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [label=%s color=%s style=%s];",
+			indent, conditionKey, operationKey, condition, EDGE_COLOR, edgeStyle))
 
 		sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s_%d_%s {", indent, dag.Id, node.Index, condition))
 
@@ -139,8 +146,8 @@ func generateConditionalDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *st
 
 		sb.WriteString(fmt.Sprintf("\n%s}", indent))
 
-		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
-			indent, previousOperation, conditionEndKey, EDGE_COLOR))
+		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s style=%s];",
+			indent, previousOperation, conditionEndKey, EDGE_COLOR, edgeStyle))
 	}
 
 	return conditionEndKey
@@ -187,8 +194,13 @@ func generateForeachDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *string
 			operationKey = generateOperationKey(nextOperationDag.Id, nextOperationNode.Index, 1, operation, "")
 		}
 
-		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
-			indent, foreachKey, operationKey, EDGE_COLOR))
+		edgeStyle := DATA_EDGE_STYLE
+		if node.DynamicExecOnly {
+			edgeStyle = EXEC_EDGE_STYLE
+		}
+
+		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s style=%s];",
+			indent, foreachKey, operationKey, EDGE_COLOR, edgeStyle))
 
 		sb.WriteString(fmt.Sprintf("\n%ssubgraph cluster_%s_%d {", indent, dag.Id, node.Index))
 
@@ -204,8 +216,8 @@ func generateForeachDag(node *sdk.NodeExporter, dag *sdk.DagExporter, sb *string
 
 		sb.WriteString(fmt.Sprintf("\n%s}", indent))
 
-		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
-			indent, previousOperation, foreachEndKey, EDGE_COLOR))
+		sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s style=%s];",
+			indent, previousOperation, foreachEndKey, EDGE_COLOR, edgeStyle))
 	}
 
 	return foreachEndKey
@@ -258,9 +270,10 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 				sb.WriteString(fmt.Sprintf("\n%s\"%s\" [shape=%s color=%s style=%s label=\"%s\"];",
 					indent+"\t", operationKey, OPERATION_SHAPE, OPERATION_COLOR, OPERATION_STYLE, operationLebel))
 
+				// Operations always forwards data
 				if previousOperation != "" {
-					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
-						indent+"\t", previousOperation, operationKey, EDGE_COLOR))
+					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s style=%s];",
+						indent+"\t", previousOperation, operationKey, EDGE_COLOR, DATA_EDGE_STYLE))
 				}
 				previousOperation = operationKey
 			}
@@ -304,9 +317,14 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 					childOperationKey = generateOperationKey(nextOperationDag.Id, nextOperationNode.Index, 1, operation, "")
 				}
 
+				edgeStyle := DATA_EDGE_STYLE
+				if node.ChildrenExecOnly[childId] {
+					edgeStyle = EXEC_EDGE_STYLE
+				}
+
 				if previousOperation != "" {
-					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s];",
-						indent, previousOperation, childOperationKey, EDGE_COLOR))
+					sb.WriteString(fmt.Sprintf("\n%s\"%s\" -> \"%s\" [color=%s style=%s];",
+						indent, previousOperation, childOperationKey, EDGE_COLOR, edgeStyle))
 				}
 			}
 		} else {
