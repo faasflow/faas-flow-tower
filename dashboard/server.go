@@ -8,7 +8,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"sync/atomic"
 )
 
 const (
@@ -17,10 +19,11 @@ const (
 )
 
 var (
-	public_uri  = ""
-	gateway_url = ""
+	public_uri                    = ""
+	gateway_url                   = ""
+	gen         *pagegen.Template = nil
 
-	gen *pagegen.Template = nil
+	acceptingConnections int32
 )
 
 type Message struct {
@@ -216,6 +219,53 @@ func sendFile(w http.ResponseWriter, r *http.Request, file string) {
 	http.ServeFile(w, r, filepath)
 }
 
+func lockFilePresent() bool {
+	path := filepath.Join(os.TempDir(), ".lock")
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func createLockFile() (string, error) {
+	path := filepath.Join(os.TempDir(), ".lock")
+	log.Printf("Writing lock-file to: %s\n", path)
+	writeErr := ioutil.WriteFile(path, []byte{}, 0660)
+
+	atomic.StoreInt32(&acceptingConnections, 1)
+
+	return path, writeErr
+}
+
+func markUnhealthy() error {
+	atomic.StoreInt32(&acceptingConnections, 0)
+
+	path := filepath.Join(os.TempDir(), ".lock")
+	log.Printf("Removing lock-file : %s\n", path)
+	removeErr := os.Remove(path)
+	return removeErr
+}
+
+// makeHealthHandler health check handler
+func makeHealthHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			if atomic.LoadInt32(&acceptingConnections) == 0 || lockFilePresent() == false {
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK"))
+
+			break
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}
+}
+
 func main() {
 
 	err := initialize()
@@ -224,7 +274,17 @@ func main() {
 	}
 	log.Printf("successfully initialized gateway")
 
-	http.HandleFunc("/", requestHandler)
+	atomic.StoreInt32(&acceptingConnections, 0)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.HandleFunc("/", requestHandler)
+	http.HandleFunc("/_/health", makeHealthHandler())
+
+	path, writeErr := createLockFile()
+	if writeErr != nil {
+		log.Panicf("Cannot write %s. Error: %s", path, writeErr.Error())
+	}
+
+	err = http.ListenAndServe(":8080", nil)
+	markUnhealthy()
+	log.Fatal(err)
 }
