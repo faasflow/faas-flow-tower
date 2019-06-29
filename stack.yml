@@ -27,7 +27,7 @@ functions:
   dot-generator:
     lang: go
     handler: ./dot-generator
-    image: s8sg/dot-generator:1.0.1
+    image: s8sg/dot-generator:1.0.2
     environment_file:
       - gateway_config.yml
     environment:
