@@ -3,13 +3,15 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  # dashboard
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
     image: s8sg/faas-flow-gateway:1.5.0
     environment_file:
-      - gateway_config.yml
+      - conf.yml
 
+  # list flow functions deployed in openfaas
   list-flow-functions:      
     lang: go
     handler: ./list-flow-functions
@@ -19,17 +21,31 @@ functions:
       read_debug: true
       combine_output: false
     environment_file:
-      - gateway_config.yml
+      - conf.yml
     secrets:
       - basic-auth-user
       - basic-auth-password
 
+  # Generate dot graph for faas-flow
   dot-generator:
     lang: go
     handler: ./dot-generator
     image: s8sg/dot-generator:1.0.2
     environment_file:
-      - gateway_config.yml
+      - conf.yml
+    environment:
+      read_timeout: 120
+      write_timeout: 120
+      write_debug: true
+      combine_output: false
+
+  # Collect metrics for faas-flow
+  metrics:
+    lang: go
+    handler: ./metrics
+    image: metrics:latest
+    environment_file:
+      - conf.yml
     environment:
       read_timeout: 120
       write_timeout: 120
