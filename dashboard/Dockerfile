@@ -32,4 +32,6 @@ RUN chown -R app:app ./
 
 USER app
 
+HEALTHCHECK --interval=3s CMD [ -e /tmp/.lock ] || exit 1
+
 CMD ["./gateway"]
