@@ -3,4 +3,4 @@ environment:
   gateway_public_uri: "http://localhost:8080"
   basic_auth: true
   secret_mount_path: "/var/openfaas/secrets"
-  trace_url: "http://localhost:16686/"
+  trace_url: "http://jaegertracing:16686/"
