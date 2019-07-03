@@ -1,4 +1,4 @@
-{{ define "index" }}
+{{ define "dashboard" }}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -8,9 +8,34 @@
 <body>
 
     <div class="navbar navbar-expand-md navbar-dark bg-dark">
-    	<a href="#menu-toggle" class="btn btn-info" id="menu-toggle">
-      		<span class="navbar-toggler-icon"></span>
-    	</a> 
+        <div style="padding-right:20px;">
+                    <a href="#menu-toggle" class="btn btn-info" id="menu-toggle">
+                              <span class="navbar-toggler-icon"></span>
+                    </a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                        <li class="nav-item active">
+                                <a class="nav-link" href="/function/faas-flow-dashboard">Home<span class="sr-only">(current)</span></a>
+                        </li>
+                        <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Monitoring
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item" href="#">All Requests</a>
+                                        <div class="dropdown-divider"></div>
+                                        {{range .Functions}}
+                                        <a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}">{{.Name}}</a>
+                                        {{ end }}
+                                </div>
+                        </li>
+                </ul>
+                <span class="navbar-text">
+                      Faas-flow Dashboard
+                </span>
+        </div>
     </div>
     <div id="wrapper">
         <!-- Sidebar -->
@@ -22,24 +47,24 @@
                     </a>
                 </li>
 
-		{{range .Functions}}
+                {{range .Functions}}
                 <li>
-			<a href="#" name="function-switch" id="{{.Name}}">{{.Name}}</a>
+                        <a href="#" name="function-switch" id="{{.Name}}">{{.Name}}</a>
                 </li>
-		{{ end }}
+                {{ end }}
 
             </ul>
         </div>
         <!-- /#sidebar-wrapper -->
-	<!-- Welcome Page -->
+        <!-- Welcome Page -->
         <div id="welcome">
             <div class="container-fluid">
                 <h1>Faas-Flow Dashboard</h1>
-		<div>
-		    <p>Faas-flow Dashboard provides a visual representation of the flow functions that are depoloyed on the <a href="https://www.openfaas.com/">openfaas</a>.</p>
-		    <p>In order to browse flow function via this dashboard, make sure to add <code>faas-flow : 1</code> at <code>labels</code> to all flow function</p>
-		    <p>For more details visit <a href="https://github.com/s8sg/faas-flow-dashboard/blob/master/README.md">here</a></p>
-		</div>
+                <div>
+                    <p>Faas-flow Dashboard provides a visual representation of the flow functions that are depoloyed on the <a href="https://www.openfaas.com/">openfaas</a>.</p>
+                    <p>In order to browse flow function via this dashboard, make sure to add <code>faas-flow : 1</code> at <code>labels</code> to all flow function</p>
+                    <p>For more details visit <a href="https://github.com/s8sg/faas-flow-tower/blob/master/README.md">here</a></p>
+                </div>
 
             </div>
         </div>
@@ -47,20 +72,22 @@
         <!-- Page Content -->
         <div id="page-content-wrapper" style="visibility: hidden">
             <div class="card border border-dark" style="width: 60vw;">
-		<div id="graph" style="width: 59.85vw; height: 50vh; overflow: hidden;" align="center" class="border border-secondary rounded card-img-top"> </div>
-		<div class="card-body bg-light">
+                <div id="graph" style="width: 59.85vw; height: 50vh; overflow: hidden;" align="center" class="border border-secondary rounded card-img-top"> </div>
+                <div class="card-body bg-light">
                    <h2 id="flow-name" class="card-title">Flow Name</h1>
-		   <p id="flow-desc" class="card-text">
-		   Flow Description
-		   </p>
-		</div>
-		<ul class="list-group list-group-flush">
-    		   <li class="list-group-item" id="exec-count">Execution Count: </li>
+                   <p id="flow-desc" class="card-text">
+                   Flow Description
+                   </p>
+                </div>
+                <ul class="list-group list-group-flush">
+                       <li class="list-group-item" id="exec-count">Execution Count: </li>
                    <li class="list-group-item" id="replica-count">Replicas: </li>
                 </ul>
-		<div class="card-body">
-    		   <a id="link" href="#" class="card-link btn btn-info">Execute</a>
-  		</div>
+                <div class="card-body">
+                        <a id="link" href="#" class="card-link btn btn-success">Execute</a>
+                        <a id="trace" href="#" class="card-link btn btn-info">Monitor</a>
+                        <a id="remove" href="#" class="card-link btn btn-danger">Remove</a>
+                  </div>
             </div>
         </div>
         <!-- /#page-content-wrapper -->
@@ -74,15 +101,15 @@
 
     <!-- Menu Toggle Script -->
     <script>
-    	$("#menu-toggle").click(function(elem) {
-        	elem.preventDefault();
-        	$("#wrapper").toggleClass("toggled");
-    	});
+            $("#menu-toggle").click(function(elem) {
+                elem.preventDefault();
+                $("#wrapper").toggleClass("toggled");
+            });
     </script>
 
     <!-- PublicURL override -->
     <script>
-	  var serverAddr={{ .PublicURL }};
+          var serverAddr={{ .PublicURL }};
     </script>
 
     <!-- Function Toggle Script -->

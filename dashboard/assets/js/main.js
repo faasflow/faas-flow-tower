@@ -42,21 +42,27 @@ function updateContent(jsonObject) {
     }
    
     var url = getServer();
-    url = url.concat("/function/" + name);
+    execurl = url.concat("/function/" + name);
+
+    traceurl = url.concat("/function/faas-flow-dashboard?flow=" + name);
+    
+    openfaasUrl = url
 
     // Remove welcome body if present
     d3.select("#welcome").remove();
-
+    // set flow desc
     d3.select("#flow-name").text(name);
     d3.select("#flow-desc").text(description);
     d3.select("#exec-count").text("Execution Count: " + count);
     d3.select("#replica-count").text("Replicas: " + replicas);
-    d3.select("#link").attr("href", url);
+    // set href
+    d3.select("#link").attr("href", execurl);
+    d3.select("#trace").attr("href", traceurl);
+    d3.select("#remove").attr("href", openfaasUrl);
     // remove and render new graph
     d3.select("#graph")
      .selectAll("*")
      .remove();
-
     d3.select("#page-content-wrapper").style("visibility", "visible");
     d3.select("#graph")
      .graphviz()
@@ -86,7 +92,41 @@ document.getElementsByName("function-switch").forEach(function(elem) {
              }
              if (this.readyState == 4 && this.status == 200) {
                var jsObj = JSON.parse(this.responseText);
-               updateContent(jsObj);
+	       updateContent(jsObj);
+             }
+         };
+         xmlHttp.open("POST", url, true);
+         xmlHttp.setRequestHeader('accept', "application/json");
+         xmlHttp.setRequestHeader("Content-Type", "application/json");
+         xmlHttp.send(data);
+    });
+});
+
+
+// Add event listener to all requests of flow function
+document.getElementsByName("request-switch").forEach(function(elem) {
+    elem.addEventListener("click", function(event) {
+         var traceId = elem.getAttribute("value");
+	 var requestId = elem.getAttribute("id");
+         var url = getServer();
+         url = url.concat("/function/faas-flow-dashboard");
+
+         var reqData = {};
+         reqData["method"] = "trace";
+         reqData["traceId"] = traceId;
+
+
+         data = JSON.stringify(reqData);
+
+         var xmlHttp = new XMLHttpRequest();
+         xmlHttp.onreadystatechange = function() {
+             if (this.readyState == 4 && this.status != 200) {
+                alert("Failed to get flow details from : " + url);
+                return;
+             }
+             if (this.readyState == 4 && this.status == 200) {
+               var jsObj = JSON.parse(this.responseText);
+	       alert(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);

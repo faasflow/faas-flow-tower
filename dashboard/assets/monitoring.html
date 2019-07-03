@@ -1,0 +1,110 @@
+{{ define "metrics" }}
+
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "header" }}
+
+<body>
+
+    <div class="navbar navbar-expand-md navbar-dark bg-dark">
+	<div style="padding-right:20px;">
+    		<a href="#menu-toggle" class="btn btn-info" id="menu-toggle">
+      			<span class="navbar-toggler-icon"></span>
+    		</a>
+	</div>
+
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item">
+        			<a class="nav-link" href="/function/faas-flow-dashboard">Home<span class="sr-only">(current)</span></a>
+      			</li>
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Monitoring
+        			</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          				<a class="dropdown-item" href="#">All Requests</a>
+          				<div class="dropdown-divider"></div>
+					{{range .Functions}}
+					<a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}">{{.Name}}</a>
+					{{ end }}
+        			</div>
+			</li>
+		</ul>
+		<span class="navbar-text">
+      		Metrics and traces for {{.Flow}}
+    		</span>
+	</div>
+
+    </div>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="#">
+			  {{ .Flow }}
+		    </a>
+                </li>
+
+		{{range $key, $value := .Requests}}
+                <li>
+			<a href="#" value="{{ $value }}" name="request-switch" id="{{ $key }}">{{ $key }}</a>
+                </li>
+		{{ end }}
+
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+	<!-- Welcome Page -->
+        <div id="welcome">
+            <div class="container-fluid">
+                <h1>Faas-Flow monitoring</h1>
+		<div>
+		    <p>Faas-Flow monitoring provides real time execution status in the UI. In order to monitor flow function requests, tracing data must be stored in trace server.</p>
+		    <p>For flow function enable tracing <code>enable_tracing: true</code> and set trace server url <code>trace_server: "jaegertracing:5775"</code></p>
+		    <p>Provide the same trace server api url <code>trace_url: "jaegertracing:16686"</code> in conf of faas-flow-tower</p>
+		    <p>For more details visit <a href="https://github.com/s8sg/faas-flow-tower/blob/master/README.md">here</a></p>
+		</div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" style="visibility: hidden">
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Bootstrap core JavaScript    --> 
+    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    	$("#menu-toggle").click(function(elem) {
+        	elem.preventDefault();
+        	$("#wrapper").toggleClass("toggled");
+    	});
+    </script>
+
+    <!-- PublicURL override -->
+    <script>
+	  var serverAddr={{ .PublicURL }};
+    </script>
+
+    <!-- Function Toggle Script -->
+    <script type="text/javascript" src="faas-flow-dashboard?file=js/main.js"></script> 
+
+    <!-- graphviz library -->
+    <script src="//d3js.org/d3.v4.min.js"></script>
+    <script src="https://unpkg.com/viz.js@1.8.0/viz.js" type="javascript/worker"></script>
+    <script src="https://unpkg.com/d3-graphviz@1.4.0/build/d3-graphviz.min.js"></script>
+
+</body>
+
+</html>
+
+{{ end }}
