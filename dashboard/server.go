@@ -26,11 +26,14 @@ var (
 	acceptingConnections int32
 )
 
+// Message API request query
 type Message struct {
 	Method   string `json:"method"`
 	Function string `json:"function"`
+	TraceID  string `json:"trace-id"`
 }
 
+// HtmlObject object to render webpages
 type HtmlObject struct {
 	PublicURL string
 	Functions []*Function
@@ -38,6 +41,7 @@ type HtmlObject struct {
 	Requests  map[string]string
 }
 
+// Function object to retrive and response flow-function details
 type Function struct {
 	Name            string            `json:"name"`
 	Image           string            `json:"image"`
@@ -48,23 +52,38 @@ type Function struct {
 	Dag             string            `json:"dag,omitempty"`
 }
 
-// listRequestHandle handle api request to list flow function
-func listRequestHandle(w http.ResponseWriter) {
+// NodeTrace traces of each nodes in a dag
+type NodeTrace struct {
+	StartTime int `json:"start-time"`
+	Duration  int `json:"duration"`
+	// Other can be added based on the needs
+}
+
+// RequestTrace object to retrive and response traces details
+type RequestTrace struct {
+	RequestID  string                `json:"request-id"`
+	NodeTraces map[string]*NodeTrace `json:"traces"`
+	StartTime  int                   `json:"start-time"`
+	Duration   int                   `json:"duration"`
+}
+
+// listFlowsApiHandler handle api request to list flow function
+func listFlowsApiHandler(w http.ResponseWriter) {
 
 	w.Header().Set("Content-Type", jsonType)
-	functions, err := listFunction()
+	functions, err := listFlowFunctions()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to handle list request, error: %v", err), http.StatusInternalServerError)
 		return
 	}
-	data, _ := json.Marshal(functions)
+	data, _ := json.MarshalIndent(functions, "", "    ")
 	w.Write(data)
 }
 
-// flowFunctionRequestHandle request handler for a flow function
-func flowFunctionRequestHandle(w http.ResponseWriter, function string) {
+// flowDescApiHandler request handler for a flow function
+func flowDescApiHandler(w http.ResponseWriter, function string) {
 	w.Header().Set("Content-Type", jsonType)
-	functions, err := listFunction()
+	functions, err := listFlowFunctions()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
 		return
@@ -77,7 +96,7 @@ func flowFunctionRequestHandle(w http.ResponseWriter, function string) {
 				return
 			}
 			functionObj.Dag = dog
-			data, _ := json.Marshal(functionObj)
+			data, _ := json.MarshalIndent(functionObj, "", "    ")
 			w.Write(data)
 			return
 		}
@@ -85,8 +104,34 @@ func flowFunctionRequestHandle(w http.ResponseWriter, function string) {
 	http.Error(w, fmt.Sprintf("failed to handle request, function not found"), http.StatusInternalServerError)
 }
 
-// listFunction request to list-flow-function to get flow-function list
-func listFunction() ([]*Function, error) {
+// listFlowRequestsApiHandler list the requests for a flow function
+func listFlowRequestsApiHandler(w http.ResponseWriter, flowfunction string) {
+	w.Header().Set("Content-Type", jsonType)
+	requests, err := listFlowRequests(flowfunction)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	data, _ := json.MarshalIndent(requests, "", "    ")
+	w.Write(data)
+	return
+}
+
+// requestTracesApiHandler request handler for traces of a request
+func requestTracesApiHandler(w http.ResponseWriter, traceId string) {
+	w.Header().Set("Content-Type", jsonType)
+	trace, err := getRequestTraces(traceId)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	data, _ := json.MarshalIndent(trace, "", "    ")
+	w.Write(data)
+	return
+}
+
+// listFlowFunctions request to list-flow-function to get flow-function list
+func listFlowFunctions() ([]*Function, error) {
 	var err error
 
 	c := http.Client{}
@@ -95,9 +140,9 @@ func listFunction() ([]*Function, error) {
 	response, err := c.Do(request)
 
 	if err == nil {
-		defer response.Body.Close()
 
 		if response.Body != nil {
+			defer response.Body.Close()
 			bodyBytes, bErr := ioutil.ReadAll(response.Body)
 			if bErr != nil {
 				return nil, fmt.Errorf("failed to get function list, %v", bErr)
@@ -117,8 +162,8 @@ func listFunction() ([]*Function, error) {
 	return nil, fmt.Errorf("failed to get function list, %v", err)
 }
 
-// listrequest request to metrics function to get list of flow-function
-func listRequest(flow string) (map[string]string, error) {
+// listFlowRequests request to metrics function to get list of request for a flow function
+func listFlowRequests(flow string) (map[string]string, error) {
 	var err error
 
 	c := http.Client{}
@@ -128,18 +173,18 @@ func listRequest(flow string) (map[string]string, error) {
 	response, err := c.Do(request)
 
 	if err == nil {
-		defer response.Body.Close()
 
 		if response.Body != nil {
+			defer response.Body.Close()
 			bodyBytes, bErr := ioutil.ReadAll(response.Body)
 			if bErr != nil {
-				return nil, fmt.Errorf("failed to get function list, %v", bErr)
+				return nil, fmt.Errorf("failed to get request list, %v", bErr)
 			}
 
 			var requests map[string]string
 			mErr := json.Unmarshal(bodyBytes, &requests)
 			if mErr != nil {
-				return nil, fmt.Errorf("failed to get function list, %v", mErr)
+				return nil, fmt.Errorf("failed to get request list, %v", mErr)
 			}
 
 			return requests, nil
@@ -147,6 +192,35 @@ func listRequest(flow string) (map[string]string, error) {
 	}
 
 	return nil, fmt.Errorf("failed to get requests list, %v", err)
+}
+
+// getRequestTraces request to metrics funcion to get list of traces for a request traceID
+func getRequestTraces(requestTraceId string) (*RequestTrace, error) {
+	var err error
+
+	c := http.Client{}
+	url := gateway_url + "function/metrics?method=traces&trace=" + requestTraceId
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+
+	response, err := c.Do(request)
+	if err == nil {
+		if response.Body != nil {
+			defer response.Body.Close()
+			bodyBytes, bErr := ioutil.ReadAll(response.Body)
+			if bErr != nil {
+				return nil, fmt.Errorf("failed to get traces, %v", bErr)
+			}
+
+			trace := &RequestTrace{}
+			mErr := json.Unmarshal(bodyBytes, trace)
+			if mErr != nil {
+				return nil, fmt.Errorf("failed to get traces, %v", mErr)
+			}
+
+			return trace, nil
+		}
+	}
+	return nil, fmt.Errorf("failed to get traces, %v", err)
 }
 
 // getDag request to dot-generator for the dag dot graph
@@ -158,9 +232,9 @@ func getDag(function string) (string, error) {
 	request, _ := http.NewRequest(http.MethodGet, gateway_url+"function/dot-generator?function="+function, nil)
 	response, err := c.Do(request)
 	if err == nil {
-		defer response.Body.Close()
 
 		if response.Body != nil {
+			defer response.Body.Close()
 			bodyBytes, bErr := ioutil.ReadAll(response.Body)
 			if bErr != nil {
 				return "", fmt.Errorf("failed to get dag, %v", bErr)
@@ -253,13 +327,26 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 	method := msg.Method
 
 	switch method {
-	case "state":
-		listRequestHandle(w)
+
+	// handle request for listing faas-flow function
+	case "list-flows":
+		listFlowsApiHandler(w)
 		return
-	case "flow":
-		function := msg.Function
-		flowFunctionRequestHandle(w, function)
+
+	// handle request for details for a specific function
+	case "flow-desc":
+		flowDescApiHandler(w, msg.Function)
 		return
+
+	// handle request for list requests for a specific function
+	case "list-requests":
+		listFlowRequestsApiHandler(w, msg.Function)
+
+	// handle request for listing trace for a specific request trace
+	case "request-traces":
+		requestTracesApiHandler(w, msg.TraceID)
+		return
+
 	}
 	http.Error(w, "failed to handle request, method doesn't match", http.StatusBadRequest)
 }
@@ -268,7 +355,7 @@ func apiRequestHandler(w http.ResponseWriter, r *http.Request) {
 func dashboardPageHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Serving request for dashboard view")
 
-	functions, err := listFunction()
+	functions, err := listFlowFunctions()
 	if err != nil {
 		log.Printf("failed to get functions, error: %v", err)
 		functions = make([]*Function, 0)
@@ -294,13 +381,13 @@ func tracePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	flow := flows[0]
 
-	functions, err := listFunction()
+	functions, err := listFlowFunctions()
 	if err != nil {
 		log.Printf("failed to get functions, error: %v", err)
 		functions = make([]*Function, 0)
 	}
 
-	requests, err := listRequest(flow)
+	requests, err := listFlowRequests(flow)
 	if err != nil {
 		log.Printf("failed to generate requested page, error: %v", err)
 		requests = make(map[string]string)
@@ -314,8 +401,24 @@ func tracePageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Static file request handler
-func sendFile(w http.ResponseWriter, r *http.Request, file string) {
+// htmlPageHandler handler html page request
+func htmlPageHandler(w http.ResponseWriter, r *http.Request) {
+	flow := ""
+	flows, ok := r.URL.Query()["flow"]
+	if ok && len(flows[0]) > 0 {
+		flow = flows[0]
+	}
+	if flow == "" {
+		// Handle dashboard
+		dashboardPageHandler(w, r)
+	} else {
+		// Handle trace
+		tracePageHandler(w, r)
+	}
+}
+
+// fileRequestHandler Static file request handler
+func fileRequestHandler(w http.ResponseWriter, r *http.Request, file string) {
 	filepath := "./assets/" + file
 	log.Printf("Serving file %s", filepath)
 	http.ServeFile(w, r, filepath)
@@ -329,7 +432,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if file request
 	files, ok := r.URL.Query()["file"]
 	if ok && len(files[0]) > 0 {
-		sendFile(w, r, files[0])
+		fileRequestHandler(w, r, files[0])
 		return
 	}
 
@@ -339,22 +442,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check the provided flow
-	flow := ""
-	flows, ok := r.URL.Query()["flow"]
-	if ok && len(flows[0]) > 0 {
-		flow = flows[0]
-	}
-
-	if flow == "" {
-		// Handle dashboard
-		dashboardPageHandler(w, r)
-	} else {
-		// Handle trace
-		tracePageHandler(w, r)
-	}
-
-	return
+	// handle html request
+	htmlPageHandler(w, r)
 }
 
 func main() {
@@ -367,7 +456,10 @@ func main() {
 
 	atomic.StoreInt32(&acceptingConnections, 0)
 
+	// Every openfaas function request lands here
 	http.HandleFunc("/", requestHandler)
+
+	// Health Check api for kubernets and swarm
 	http.HandleFunc("/_/health", healthRequestHandler())
 
 	path, writeErr := createLockFile()

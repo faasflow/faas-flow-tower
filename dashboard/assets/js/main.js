@@ -30,8 +30,8 @@ function attributer(datum, index, nodes) {
     }
 };
 
-// Update the content of content wrapper
-function updateContent(jsonObject) {
+// Update the content of content wrapper for function desc
+function updateFunctionDescContent(jsonObject) {
     var name = jsonObject["name"];
     var count = jsonObject["invocationCount"];
     var replicas = jsonObject["replicas"];
@@ -41,15 +41,18 @@ function updateContent(jsonObject) {
 	description = jsonObject["labels"]["faas-flow-desc"];
     }
    
+    // set urls
     var url = getServer();
     execurl = url.concat("/function/" + name);
-
     traceurl = url.concat("/function/faas-flow-dashboard?flow=" + name);
-    
     openfaasUrl = url
 
-    // Remove welcome body if present
-    d3.select("#welcome").remove();
+    // remove welcome body if present
+    welcome = d3.select("#welcome")
+    if (welcome !== null ) {
+        welcome.remove();
+    }
+
     // set flow desc
     d3.select("#flow-name").text(name);
     d3.select("#flow-desc").text(description);
@@ -71,6 +74,29 @@ function updateContent(jsonObject) {
      .renderDot(dag);
 };
 
+// Update the content of content wrapper for request desc
+function updateRequestDescContent(jsonObject) {
+	
+    var id = jsonObject["request-id"];
+    var stime = jsonObject["start-time"];
+    var duration = jsonObject["duration"];
+
+    // remove welcome body if present
+    welcome = d3.select("#welcome")
+    if (welcome !== null ) {
+        welcome.remove();
+    }
+
+    // set request desc
+    d3.select("#request-id").text("Request Id: " + id); 
+    d3.select("#start-time").text("Start Time: " + stime);
+    d3.select("#exec-duration").text("Duration: " + duration);
+    d3.select("#exec-status").text("State: n/a");
+
+    // set flow desc
+    d3.select("#page-content-wrapper").style("visibility", "visible");
+};
+
 // Add event listener to all faas-flow function
 document.getElementsByName("function-switch").forEach(function(elem) {
     elem.addEventListener("click", function(event) {
@@ -79,7 +105,7 @@ document.getElementsByName("function-switch").forEach(function(elem) {
          url = url.concat("/function/faas-flow-dashboard");
 
          var reqData = {};
-         reqData["method"] = "flow";
+         reqData["method"] = "flow-desc";
          reqData["function"] = functionId;
 
          data = JSON.stringify(reqData);
@@ -92,7 +118,7 @@ document.getElementsByName("function-switch").forEach(function(elem) {
              }
              if (this.readyState == 4 && this.status == 200) {
                var jsObj = JSON.parse(this.responseText);
-	       updateContent(jsObj);
+	       updateFunctionDescContent(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);
@@ -112,8 +138,8 @@ document.getElementsByName("request-switch").forEach(function(elem) {
          url = url.concat("/function/faas-flow-dashboard");
 
          var reqData = {};
-         reqData["method"] = "trace";
-         reqData["traceId"] = traceId;
+         reqData["method"] = "request-traces";
+         reqData["trace-id"] = traceId;
 
 
          data = JSON.stringify(reqData);
@@ -126,7 +152,7 @@ document.getElementsByName("request-switch").forEach(function(elem) {
              }
              if (this.readyState == 4 && this.status == 200) {
                var jsObj = JSON.parse(this.responseText);
-	       alert(jsObj);
+	       updateRequestDescContent(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);

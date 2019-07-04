@@ -10,6 +10,8 @@ import (
 	"os"
 )
 
+// Objects to retrive specific trace details
+
 type SpanItem struct {
 	TraceID       string `json:"traceID"`
 	SpanID        string `json:"spanID"`
@@ -28,6 +30,8 @@ type Traces struct {
 	Data []*TraceItem `json:"data"`
 }
 
+// Objects to retrive requests lists
+
 type SpanOps struct {
 	TraceID       string `json:"traceID"`
 	SpanID        string `json:"spanID"`
@@ -43,16 +47,19 @@ type Requests struct {
 	Data []*RequestItem `json:"data"`
 }
 
+// traces of each nodes in a dag
 type NodeTrace struct {
-	StartTime int `json:"startTime"`
+	StartTime int `json:"start-time"`
 	Duration  int `json:"duration"`
+	// Other can be added based on the needs
 }
 
+// RequestTrace object to response traces details
 type RequestTrace struct {
-	RequestID  string
-	NodeTraces map[string]*NodeTrace
-	StartTime  int
-	Duration   int
+	RequestID  string                `json:"request-id"`
+	NodeTraces map[string]*NodeTrace `json:"traces"`
+	StartTime  int                   `json:"start-time"`
+	Duration   int                   `json:"duration"`
 }
 
 var (
