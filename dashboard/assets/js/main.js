@@ -11,6 +11,15 @@ function getServer() {
     return server;
 };
 
+window.chartColors = {
+      red: 'rgb(255, 99, 132)',
+      orange: 'rgb(255, 159, 64)',
+      yellow: 'rgb(255, 205, 86)',
+      green: 'rgb(75, 192, 192)',
+      blue: 'rgb(54, 162, 235)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+};
 
 function attributer(datum, index, nodes) {
     var selection = d3.select(this);
@@ -30,6 +39,7 @@ function attributer(datum, index, nodes) {
     }
 };
 
+
 // Update the content of content wrapper for function desc
 function updateFunctionDescContent(jsonObject) {
     var name = jsonObject["name"];
@@ -38,7 +48,7 @@ function updateFunctionDescContent(jsonObject) {
     var dag = jsonObject["dag"];
     var description = "No flow description provided. Use faas-flow-desc in lebels";
     if ("faas-flow-desc" in jsonObject["labels"]) {
-	description = jsonObject["labels"]["faas-flow-desc"];
+    description = jsonObject["labels"]["faas-flow-desc"];
     }
    
     // set urls
@@ -74,9 +84,60 @@ function updateFunctionDescContent(jsonObject) {
      .renderDot(dag);
 };
 
+function formatDuration(micros) {
+    var seconds = (micros / 1000000);
+    return "" + seconds + "s";
+};
+
+function formatTime(unix_timestamp) {
+    var date = new Date(unix_timestamp/1000);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+
+    // Will display time in 10:30:23 format
+    var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    return formattedTime
+};
+
+function convertTraceToBarChart(jsonObject) {
+    var nodes = []
+    var data = []
+    var id = jsonObject["request-id"];
+    var rstime = jsonObject["start-time"];
+    var rduration = jsonObject["duration"];
+    var color = Chart.helpers.color;
+
+    // create request label
+    nodes.push(id);
+    // add request data
+    data.push(rduration/1000000);
+
+    traces = jsonObject["traces"]
+    for (var node in traces) {
+	// add node lebel
+        nodes.push(node);
+	value = traces[node];
+	nstime = value["start-time"];
+	nduration = value["duration"]; 
+	// add node data
+	data.push(nduration/1000000);
+    }
+
+    return {
+	    labels: nodes,
+	    datasets: [{
+		label: id,
+		backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+		borderColor: window.chartColors.blue,
+		data: data
+            }]
+    }
+};
+
 // Update the content of content wrapper for request desc
 function updateRequestDescContent(jsonObject) {
-	
+    
     var id = jsonObject["request-id"];
     var stime = jsonObject["start-time"];
     var duration = jsonObject["duration"];
@@ -87,10 +148,33 @@ function updateRequestDescContent(jsonObject) {
         welcome.remove();
     }
 
+    window.barChartData = convertTraceToBarChart(jsonObject);
+
+    var ctx = document.getElementById('canvas').getContext('2d');
+    window.myHorizontalBar = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: window.barChartData,
+                options: {
+                    elements: {
+                        rectangle: {
+                            borderWidth: 2,
+                        }
+                    },
+                    responsive: true,
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Traces for individual nodes for request: ' + id
+                    }
+                }
+    });
+
     // set request desc
     d3.select("#request-id").text("Request Id: " + id); 
-    d3.select("#start-time").text("Start Time: " + stime);
-    d3.select("#exec-duration").text("Duration: " + duration);
+    d3.select("#start-time").text("Start Time: " + formatTime(stime));
+    d3.select("#exec-duration").text("Duration: " + formatDuration(duration));
     d3.select("#exec-status").text("State: n/a");
 
     // set flow desc
@@ -118,7 +202,7 @@ document.getElementsByName("function-switch").forEach(function(elem) {
              }
              if (this.readyState == 4 && this.status == 200) {
                var jsObj = JSON.parse(this.responseText);
-	       updateFunctionDescContent(jsObj);
+           updateFunctionDescContent(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);
@@ -133,7 +217,7 @@ document.getElementsByName("function-switch").forEach(function(elem) {
 document.getElementsByName("request-switch").forEach(function(elem) {
     elem.addEventListener("click", function(event) {
          var traceId = elem.getAttribute("value");
-	 var requestId = elem.getAttribute("id");
+         var requestId = elem.getAttribute("id");
          var url = getServer();
          url = url.concat("/function/faas-flow-dashboard");
 
@@ -152,7 +236,7 @@ document.getElementsByName("request-switch").forEach(function(elem) {
              }
              if (this.readyState == 4 && this.status == 200) {
                var jsObj = JSON.parse(this.responseText);
-	       updateRequestDescContent(jsObj);
+           updateRequestDescContent(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);

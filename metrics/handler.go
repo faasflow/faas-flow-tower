@@ -147,7 +147,6 @@ func listTraces(request string) (string, error) {
 	}
 
 	response := &RequestTrace{}
-	response.RequestID = request
 	response.NodeTraces = make(map[string]*NodeTrace)
 
 	var lastSpanStart int
@@ -155,6 +154,8 @@ func listTraces(request string) (string, error) {
 
 	for _, span := range requestTrace.Spans {
 		if span.TraceID == request && span.TraceID == span.SpanID {
+			// Set RequestID, StartTime and lastestSpan start time
+			response.RequestID = span.OperationName
 			response.StartTime = span.StartTime
 			lastSpanStart = span.StartTime
 		} else {

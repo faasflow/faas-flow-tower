@@ -73,7 +73,7 @@
         <!-- Page Content -->
         <div id="page-content-wrapper" style="visibility: hidden">
             <div class="card border border-dark" style="width: 60vw;">
-		<div id="container" style="width: 100%;">
+		<div id="container" style="width: 90%;">
 			<canvas id="canvas"></canvas>
 		</div>
                 <div class="card-body bg-light">
@@ -119,13 +119,15 @@
 	  var serverAddr={{ .PublicURL }};
     </script>
 
-    <!-- Function Toggle Script -->
+    <!-- main Script -->
     <script type="text/javascript" src="faas-flow-dashboard?file=js/main.js"></script> 
 
-    <!-- graphviz library -->
+    <!-- d3 library -->
     <script src="//d3js.org/d3.v4.min.js"></script>
-    <script src="https://unpkg.com/viz.js@1.8.0/viz.js" type="javascript/worker"></script>
-    <script src="https://unpkg.com/d3-graphviz@1.4.0/build/d3-graphviz.min.js"></script>
+    <!-- chartjs library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0/dist/Chart.min.js"></script>
+
+
 
 </body>
 
