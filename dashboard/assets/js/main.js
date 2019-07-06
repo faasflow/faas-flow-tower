@@ -1,3 +1,14 @@
+window.chartColors = {
+      red: 'rgb(255, 99, 132)',
+      orange: 'rgb(255, 159, 64)',
+      yellow: 'rgb(255, 205, 86)',
+      green: 'rgb(75, 192, 192)',
+      blue: 'rgb(54, 162, 235)',
+      purple: 'rgb(153, 102, 255)',
+      grey: 'rgb(201, 203, 207)'
+};
+
+
 // Get the server address
 function getServer() {
     var server = "";
@@ -11,16 +22,7 @@ function getServer() {
     return server;
 };
 
-window.chartColors = {
-      red: 'rgb(255, 99, 132)',
-      orange: 'rgb(255, 159, 64)',
-      yellow: 'rgb(255, 205, 86)',
-      green: 'rgb(75, 192, 192)',
-      blue: 'rgb(54, 162, 235)',
-      purple: 'rgb(153, 102, 255)',
-      grey: 'rgb(201, 203, 207)'
-};
-
+// d3 dot vix attributor
 function attributer(datum, index, nodes) {
     var selection = d3.select(this);
     if (datum.tag == "svg") {
@@ -84,11 +86,13 @@ function updateFunctionDescContent(jsonObject) {
      .renderDot(dag);
 };
 
+// format function duration in sec
 function formatDuration(micros) {
     var seconds = (micros / 1000000);
     return "" + seconds + "s";
 };
 
+// format Time in hour:min:sec
 function formatTime(unix_timestamp) {
     var date = new Date(unix_timestamp/1000);
     var hours = date.getHours();
@@ -100,39 +104,42 @@ function formatTime(unix_timestamp) {
     return formattedTime
 };
 
-function convertTraceToBarChart(jsonObject) {
-    var nodes = []
-    var data = []
+// draw rge bar chart for request tarces
+function drawBarChart(jsonObject) {
     var id = jsonObject["request-id"];
     var rstime = jsonObject["start-time"];
     var rduration = jsonObject["duration"];
-    var color = Chart.helpers.color;
+    var traces = jsonObject["traces"];
+  
+    var container = document.getElementById('canvas');
+    var chart = new google.visualization.Timeline(container);
+    var dataTable = new google.visualization.DataTable();
 
-    // create request label
-    nodes.push(id);
-    // add request data
-    data.push(rduration/1000000);
 
-    traces = jsonObject["traces"]
+    dataTable.addColumn({ type: 'string', id: 'ID' });
+    dataTable.addColumn({ type: 'number', id: 'Start' });
+    dataTable.addColumn({ type: 'number', id: 'End' });
+    
+    var rows = [];
+    var requestdata = [id, rstime/1000, (rstime/1000) + (rduration/1000)];
+    rows.push(requestdata);
+
     for (var node in traces) {
-	// add node lebel
-        nodes.push(node);
 	value = traces[node];
-	nstime = value["start-time"];
-	nduration = value["duration"]; 
-	// add node data
-	data.push(nduration/1000000);
+        nstime = value["start-time"];
+        nduration = value["duration"];
+	nodedata = [node, nstime/1000, (nstime/1000) + (nduration/1000)]
+	rows.push(nodedata);
     }
+    dataTable.addRows(rows)
 
-    return {
-	    labels: nodes,
-	    datasets: [{
-		label: id,
-		backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-		borderColor: window.chartColors.blue,
-		data: data
-            }]
-    }
+    var options = {
+      animation:{
+        duration: 1000,
+        easing: 'out',
+      },
+    };
+    chart.draw(dataTable, options);
 };
 
 // Update the content of content wrapper for request desc
@@ -148,27 +155,12 @@ function updateRequestDescContent(jsonObject) {
         welcome.remove();
     }
 
-    window.barChartData = convertTraceToBarChart(jsonObject);
-
-    var ctx = document.getElementById('canvas').getContext('2d');
-    window.myHorizontalBar = new Chart(ctx, {
-                type: 'horizontalBar',
-                data: window.barChartData,
-                options: {
-                    elements: {
-                        rectangle: {
-                            borderWidth: 2,
-                        }
-                    },
-                    responsive: true,
-                    legend: {
-                        position: 'right',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Traces for individual nodes for request: ' + id
-                    }
-                }
+    // draw the bar chart
+    google.charts.load("current", {
+	    packages: ["timeline"]},
+    );
+    google.charts.setOnLoadCallback(function(){
+	    drawBarChart(jsonObject);
     });
 
     // set request desc
@@ -201,8 +193,8 @@ document.getElementsByName("function-switch").forEach(function(elem) {
                 return;
              }
              if (this.readyState == 4 && this.status == 200) {
-               var jsObj = JSON.parse(this.responseText);
-           updateFunctionDescContent(jsObj);
+                var jsObj = JSON.parse(this.responseText);
+                updateFunctionDescContent(jsObj);
              }
          };
          xmlHttp.open("POST", url, true);
