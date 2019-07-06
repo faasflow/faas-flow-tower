@@ -1,0 +1,133 @@
+{{ define "metrics" }}
+
+<!DOCTYPE html>
+<html lang="en">
+
+{{ template "header" }}
+
+<body>
+
+    <div class="navbar navbar-expand-md navbar-dark bg-dark">
+	<div style="padding-right:20px;">
+    		<a href="#menu-toggle" class="btn btn-info" id="menu-toggle" data-toggle="tooltip" title="Click to hide/show menu">
+      			<span class="navbar-toggler-icon"></span>
+    		</a>
+	</div>
+
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item">
+        			<a class="nav-link" href="/function/faas-flow-dashboard" data-toggle="tooltip" title="click to visit dashboard">Home<span class="sr-only">(current)</span></a>
+      			</li>
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Monitoring
+        			</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          				<a class="dropdown-item" href="#">All Requests</a>
+          				<div class="dropdown-divider"></div>
+					{{range .Functions}}
+					<a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}" data-toggle="tooltip" title="Click to view {{.Name}} monitoring information">{{.Name}}</a>
+					{{ end }}
+        			</div>
+			</li>
+		</ul>
+		<span class="navbar-text">
+      		Metrics and traces for {{.Flow}}
+    		</span>
+	</div>
+
+    </div>
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand">
+                    <a href="/function/faas-flow-dashboard?flow={{ .Flow }}" data-toggle="tooltip" title="Click to refresh requests">
+			  {{ .Flow }}
+		    </a>
+                </li>
+
+		{{range $key, $value := .Requests}}
+                <li>
+			<a href="#" value="{{ $value }}" name="request-switch" id="{{ $key }}" data-toggle="tooltip" title="Click to see request: {{ $key }} details">{{ $key }}</a>
+                </li>
+		{{ end }}
+
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+	<!-- Welcome Page -->
+        <div id="welcome">
+            <div class="container-fluid">
+                <h1>Faas-Flow monitoring</h1>
+		<div>
+		    <p>Faas-Flow monitoring provides execution status of indivudual requests and traces in the UI. In order to monitor flow function, tracing data must be stored in trace server.</p>
+		    <p>For flow function enable tracing <code>enable_tracing: true</code> and set trace server url <code>trace_server: "jaegertracing:5775"</code></p>
+		    <p>Provide the same trace server api url <code>trace_url: "jaegertracing:16686"</code> in conf of faas-flow-tower</p>
+		    <p>For more details visit <a href="https://github.com/s8sg/faas-flow-tower/blob/master/README.md">faas-flow-tower</a> and <a href="https://github.com/s8sg/faas-flow/blob/master/README.md">faas-flow</a> homepage</p>
+		</div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" style="visibility: hidden">
+            <div class="card border border-dark" style="width: 60vw;">
+		<div id="canvas" style="width: 100%; height: 30vw;"></div>
+                <div class="card-body bg-light">
+                   <h2 id="request-id" class="card-title">Request Id: </h1>
+                   <p id="request-desc" class="card-text">
+                   Request of faas-flow: {{.Flow}}
+                   </p>
+                </div>
+                <ul class="list-group list-group-flush">
+                   <li class="list-group-item" id="start-time">Start Time: </li>
+                   <li class="list-group-item" id="exec-duration">Duration: </li>
+		   <li class="list-group-item" id="exec-status">State: </li>
+                </ul>
+                <div class="card-body">
+                        <a id="refresh-traces" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to refresh request traces">
+				  Refresh
+			</a>
+                        <a id="download-trace-logs" href="#" class="card-link btn btn-info" data-toggle="tooltip" title="Click to download raw trace logs">
+				  Download Logs
+			</a>
+                </div>
+            </div>
+	</div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- Bootstrap core JavaScript    --> 
+    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    	$("#menu-toggle").click(function(elem) {
+        	elem.preventDefault();
+        	$("#wrapper").toggleClass("toggled");
+    	});
+    </script>
+
+    <!-- PublicURL override -->
+    <script>
+	  var serverAddr={{ .PublicURL }};
+    </script>
+
+    <!-- main Script -->
+    <script type="text/javascript" src="faas-flow-dashboard?file=js/main.js"></script> 
+
+    <!-- d3 library -->
+    <script src="//d3js.org/d3.v4.min.js"></script>
+
+    <!-- google charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+</body>
+
+</html>
+
+{{ end }}
