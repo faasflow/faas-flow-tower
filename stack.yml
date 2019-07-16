@@ -30,7 +30,7 @@ functions:
   dot-generator:
     lang: go
     handler: ./dot-generator
-    image: s8sg/dot-generator:1.0.2
+    image: s8sg/dot-generator:1.0.3
     environment_file:
       - conf.yml
     environment:
