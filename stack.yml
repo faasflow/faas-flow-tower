@@ -43,7 +43,7 @@ functions:
   metrics:
     lang: go
     handler: ./metrics
-    image: s8sg/metrics:1.0.0
+    image: s8sg/metrics:1.5.0
     environment_file:
       - conf.yml
     environment:

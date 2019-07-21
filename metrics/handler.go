@@ -149,27 +149,42 @@ func listTraces(request string) (string, error) {
 	response := &RequestTrace{}
 	response.NodeTraces = make(map[string]*NodeTrace)
 
-	var lastSpanStart int
-	var lastSpanDuration int
+	var lastSpanEnd int
 
 	for _, span := range requestTrace.Spans {
 		if span.TraceID == request && span.TraceID == span.SpanID {
 			// Set RequestID, StartTime and lastestSpan start time
 			response.RequestID = span.OperationName
 			response.StartTime = span.StartTime
-			lastSpanStart = span.StartTime
+			lastSpanEnd = span.StartTime
 		} else {
-			node := &NodeTrace{}
-			node.StartTime = span.StartTime
-			node.Duration = span.Duration
-			response.NodeTraces[span.OperationName] = node
-			if span.StartTime > lastSpanStart {
-				lastSpanStart = span.StartTime
-				lastSpanDuration = span.Duration
+			spanEndTime := span.StartTime + span.Duration
+			if spanEndTime > lastSpanEnd {
+				lastSpanEnd = spanEndTime
 			}
+
+			node, found := response.NodeTraces[span.OperationName]
+			if found {
+				nodeStartTime := node.StartTime
+				nodeDuration := node.Duration
+				nodeEndtime := nodeStartTime + nodeDuration
+				if span.StartTime < nodeStartTime {
+					nodeStartTime = span.StartTime
+				}
+				if spanEndTime > nodeEndtime {
+					nodeDuration = spanEndTime - nodeStartTime
+				}
+				node.StartTime = nodeStartTime
+				node.Duration = nodeDuration
+			} else {
+				node = &NodeTrace{}
+				node.StartTime = span.StartTime
+				node.Duration = span.Duration
+			}
+			response.NodeTraces[span.OperationName] = node
 		}
 	}
-	response.Duration = lastSpanStart - response.StartTime + lastSpanDuration
+	response.Duration = lastSpanEnd - response.StartTime
 
 	encoded, err := json.MarshalIndent(response, "", "    ")
 	if err != nil {
