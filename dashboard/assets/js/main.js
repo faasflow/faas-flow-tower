@@ -121,23 +121,31 @@ function drawBarChart(jsonObject) {
     dataTable.addColumn({ type: 'number', id: 'End' });
     
     var rows = [];
-    var requestdata = [id, rstime/1000, (rstime/1000) + (rduration/1000)];
+
+    var normalizer = 1000;
+    var requestdata = [id, (rstime/normalizer), ((rstime+rduration)/normalizer)];
     rows.push(requestdata);
 
     for (var node in traces) {
-	value = traces[node];
+        value = traces[node];
         nstime = value["start-time"];
         nduration = value["duration"];
-	nodedata = [node, nstime/1000, (nstime/1000) + (nduration/1000)]
-	rows.push(nodedata);
+        console.log(nstime);
+        console.log(nduration);
+        nodedata = [node, nstime/1000, ((nstime+nduration)/normalizer)]
+        rows.push(nodedata);
     }
     dataTable.addRows(rows)
 
     var options = {
-      animation:{
-        duration: 1000,
-        easing: 'out',
-      },
+        animation:{
+            duration: 1000,
+            easing: 'out',
+        },
+	hAxis:{
+	    minValue: (rstime/normalizer),
+	    maxValue: ((nstime+nduration)/normalizer),
+	},	
     };
     chart.draw(dataTable, options);
 };
