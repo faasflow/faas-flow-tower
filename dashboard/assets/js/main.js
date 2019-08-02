@@ -48,9 +48,11 @@ function updateFunctionDescContent(jsonObject) {
     var count = jsonObject["invocationCount"];
     var replicas = jsonObject["replicas"];
     var dag = jsonObject["dag"];
-    var description = "No flow description provided. Use faas-flow-desc in lebels";
+    var description = "No flow description provided. Use faas-flow-desc in annotations";
     if ("faas-flow-desc" in jsonObject["labels"]) {
     description = jsonObject["labels"]["faas-flow-desc"];
+    } else if("faas-flow-desc" in jsonObject["annotations"]){
+    description = jsonObject["annotations"]["faas-flow-desc"]
     }
    
     // set urls
