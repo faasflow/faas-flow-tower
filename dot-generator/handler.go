@@ -49,9 +49,9 @@ const (
 func generateOperationKey(dagId string, nodeIndex int, opsIndex int, operation *sdk.OperationExporter, operationStr string) string {
 	if operation != nil {
 		switch {
-		case operation.IsFunction:
+		case operation.Properties["isFunction"][0] == "true":
 			operationStr = "func-" + operation.Name
-		case operation.IsCallback:
+		case operation.Properties["isCallback"][0] == "true":
 			operationStr = "callback-" + operation.Name
 		default:
 			operationStr = "modifier"
@@ -75,9 +75,9 @@ func generateOperationLebel(operation *sdk.OperationExporter) string {
 	operationStr := ""
 	if operation != nil {
 		switch {
-		case operation.IsFunction:
+		case operation.Properties["isFunction"][0] == "true":
 			operationStr = operation.Name
-		case operation.IsCallback:
+		case operation.Properties["isCallback"][0] == "true":
 			operationStr = operation.Name
 		default:
 			operationStr = "modifier"

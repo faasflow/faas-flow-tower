@@ -122,7 +122,7 @@ function drawBarChart(jsonObject) {
     
     var rows = [];
 
-    var normalizer = 1000;
+    var normalizer = 1;
     var requestdata = [id, (rstime/normalizer), ((rstime+rduration)/normalizer)];
     rows.push(requestdata);
 
@@ -130,9 +130,7 @@ function drawBarChart(jsonObject) {
         value = traces[node];
         nstime = value["start-time"];
         nduration = value["duration"];
-        console.log(nstime);
-        console.log(nduration);
-        nodedata = [node, nstime/1000, ((nstime+nduration)/normalizer)]
+        nodedata = [node, nstime/normalizer, ((nstime+nduration)/normalizer)]
         rows.push(nodedata);
     }
     dataTable.addRows(rows)
@@ -144,7 +142,7 @@ function drawBarChart(jsonObject) {
         },
 	hAxis:{
 	    minValue: (rstime/normalizer),
-	    maxValue: ((nstime+nduration)/normalizer),
+	    maxValue: ((rstime+rduration)/normalizer),
 	},	
     };
     chart.draw(dataTable, options);

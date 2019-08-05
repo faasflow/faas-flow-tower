@@ -7,9 +7,11 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:2.1.0
+    image: s8sg/faas-flow-dashboard:2.2.2
     environment_file:
       - conf.yml
+    labels:
+      com.openfaas.scale.zero: "false"
 
   # list flow functions deployed in openfaas
   list-flow-functions:      
@@ -25,12 +27,14 @@ functions:
     secrets:
       - basic-auth-user
       - basic-auth-password
+    labels:
+      com.openfaas.scale.zero: "false"
 
   # Generate dot graph for faas-flow
   dot-generator:
     lang: go
     handler: ./dot-generator
-    image: s8sg/dot-generator:1.0.3
+    image: s8sg/dot-generator:1.1.3
     environment_file:
       - conf.yml
     environment:
@@ -38,6 +42,8 @@ functions:
       write_timeout: 120
       write_debug: true
       combine_output: false
+    labels:
+      com.openfaas.scale.zero: "false"
 
   # Collect metrics for faas-flow
   metrics:
@@ -51,3 +57,5 @@ functions:
       write_timeout: 120
       write_debug: true
       combine_output: false
+    labels:
+      com.openfaas.scale.zero: "false"
