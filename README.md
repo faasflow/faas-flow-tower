@@ -22,8 +22,8 @@ Provide the same trace server api url `trace_url: "jaegertracing:16686"` in `con
 
 ### Build and Deploy
 ```
-git clone https://github.com/s8sg/faas-flow-dashboard
-cd faas-flow-dashboard
+git clone https://github.com/s8sg/faas-flow-tower
+cd faas-flow-tower
 faas build
 faas deploy
 ```
