@@ -6,9 +6,10 @@ Dashboard provide details for each faas-flow functions incuding graphical repres
 ![alt dashboard](doc/dashboard.png)
 To make flow functions visible in dashboard add the below labels in `stack.yml`   
 ```
+annotations:
+   faas-flow-desc: "option labels to provide flow descriptions"
 labels:
    faas-flow : 1
-   faas-flow-desc: "option labels to provide flow descriptions"
 ``` 
   
    
