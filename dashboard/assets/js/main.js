@@ -122,7 +122,7 @@ function drawBarChart(jsonObject) {
     
     var rows = [];
 
-    var normalizer = 1;
+    var normalizer = 1000;
     var requestdata = [id, (rstime/normalizer), ((rstime+rduration)/normalizer)];
     rows.push(requestdata);
 

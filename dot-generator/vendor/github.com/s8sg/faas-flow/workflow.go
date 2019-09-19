@@ -161,7 +161,7 @@ func (flow *Workflow) SetDag(dag *Dag) {
 	pipeline.SetDag(dag.udag)
 }
 
-// NewDag creates a new dag seperately from pipeline
+// NewDag creates a new dag separately from pipeline
 func NewDag() *Dag {
 	dag := &Dag{}
 	dag.udag = sdk.NewDag()
@@ -228,8 +228,8 @@ func (this *Dag) SubDag(vertex string, dag *Dag) {
 	return
 }
 
-// ForEachBranch composites a subdag which executes for each value
-// It returns the subdag that will be executed for each value
+// ForEachBranch composites a sub-dag which executes for each value
+// It returns the sub-dag that will be executed for each value
 func (this *Dag) ForEachBranch(vertex string, foreach sdk.ForEach, options ...BranchOption) (dag *Dag) {
 	node := this.udag.AddVertex(vertex, []sdk.Operation{})
 	if foreach == nil {
@@ -257,7 +257,7 @@ func (this *Dag) ForEachBranch(vertex string, foreach sdk.ForEach, options ...Br
 	return
 }
 
-// ConditionalBranch composites multiple dags as a subdag which executes for a conditions matched
+// ConditionalBranch composites multiple dags as a sub-dag which executes for a conditions matched
 // and returns the set of dags based on the condition passed
 func (this *Dag) ConditionalBranch(vertex string, conditions []string, condition sdk.Condition,
 	options ...BranchOption) (conditiondags map[string]*Dag) {
@@ -288,81 +288,9 @@ func (this *Dag) ConditionalBranch(vertex string, conditions []string, condition
 	return
 }
 
-// Modify adds a new modifier to the given vertex
-func (node *Node) Modify(mod Modifier) *Node {
-	newMod := createModifier(mod)
-	node.unode.AddOperation(newMod)
-	return node
-}
-
-// Apply adds a new function to the given vertex
-func (node *Node) Apply(function string, opts ...Option) *Node {
-
-	newfunc := createFunction(function)
-
-	o := &Options{}
-	for _, opt := range opts {
-		o.reset()
-		opt(o)
-		if len(o.header) != 0 {
-			for key, value := range o.header {
-				newfunc.addheader(key, value)
-			}
-		}
-		if len(o.query) != 0 {
-			for key, array := range o.query {
-				for _, value := range array {
-					newfunc.addparam(key, value)
-				}
-			}
-		}
-		if o.failureHandler != nil {
-			newfunc.addFailureHandler(o.failureHandler)
-		}
-		if o.responseHandler != nil {
-			newfunc.addResponseHandler(o.responseHandler)
-		}
-		if o.requestHandler != nil {
-			newfunc.addRequestHandler(o.requestHandler)
-		}
-	}
-
-	node.unode.AddOperation(newfunc)
-	return node
-}
-
-// Callback adds a new callback to the given vertex
-func (node *Node) Callback(url string, opts ...Option) *Node {
-	newCallback := createCallback(url)
-
-	o := &Options{}
-	for _, opt := range opts {
-		o.reset()
-		opt(o)
-		if len(o.header) != 0 {
-			for key, value := range o.header {
-				newCallback.addheader(key, value)
-			}
-		}
-		if len(o.query) != 0 {
-			for key, array := range o.query {
-				for _, value := range array {
-					newCallback.addparam(key, value)
-				}
-			}
-		}
-		if o.failureHandler != nil {
-			newCallback.addFailureHandler(o.failureHandler)
-		}
-		if o.responseHandler != nil {
-			newCallback.addResponseHandler(o.responseHandler)
-		}
-		if o.requestHandler != nil {
-			newCallback.addRequestHandler(o.requestHandler)
-		}
-	}
-
-	node.unode.AddOperation(newCallback)
+// AddOperation adds an Operation to the given vertex
+func (node *Node) AddOperation(operation sdk.Operation) *Node {
+	node.unode.AddOperation(operation)
 	return node
 }
 

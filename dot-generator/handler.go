@@ -285,8 +285,8 @@ func generateDag(dag *sdk.DagExporter, sb *strings.Builder, indent string) strin
 		}
 
 		// If node has children
-		if node.Childrens != nil {
-			for _, childId := range node.Childrens {
+		if node.Children != nil {
+			for _, childId := range node.Children {
 
 				var operation *sdk.OperationExporter
 

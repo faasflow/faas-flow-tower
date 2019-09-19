@@ -7,7 +7,7 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:2.2.2
+    image: s8sg/faas-flow-dashboard:2.2.3
     environment_file:
       - conf.yml
     labels:
@@ -34,7 +34,7 @@ functions:
   dot-generator:
     lang: go
     handler: ./dot-generator
-    image: s8sg/dot-generator:1.1.3
+    image: s8sg/dot-generator:1.2.0
     environment_file:
       - conf.yml
     environment:
