@@ -277,7 +277,7 @@ func markUnhealthy() error {
 func initialize() error {
 	public_uri = os.Getenv("gateway_public_uri")
 	gateway_url = os.Getenv("gateway_url")
-	gen = pagegen.Must(pagegen.ParseGlob("assets/*.html"))
+	gen = pagegen.Must(pagegen.ParseGlob("assets/templates/*.html"))
 	return nil
 }
 
@@ -419,7 +419,7 @@ func htmlPageHandler(w http.ResponseWriter, r *http.Request) {
 
 // fileRequestHandler Static file request handler
 func fileRequestHandler(w http.ResponseWriter, r *http.Request, file string) {
-	filepath := "./assets/" + file
+	filepath := "./assets/static/" + file
 	log.Printf("Serving file %s", filepath)
 	http.ServeFile(w, r, filepath)
 }
