@@ -44,6 +44,8 @@ type ExecutionRuntime interface {
 	HandleNextNode(state *PartialState) (err error)
 	// Provide an execution option that will be passed to the operation
 	GetExecutionOption(operation sdk.Operation) map[string]interface{}
+	// Handle the completion of execution of data
+	HandleExecutionCompletion(data []byte) error
 }
 
 // Executor implements a faas-flow executor
@@ -101,8 +103,8 @@ type FlowExecutor struct {
 	partialState *PartialState // holds the partially completed state
 	finished     bool          // denote the flow has finished execution
 
-	executor Executor      // executor
-	exitChan chan struct{} // exit channel
+	executor   Executor    // executor
+	notifyChan chan string // notify about execution complete
 }
 
 const (
@@ -1018,7 +1020,7 @@ func (fexec *FlowExecutor) init() ([]byte, error) {
 		}
 
 		// Use request Id if already provided
-		requestId = fexec.newRequest.RequestId
+		requestId = rawRequest.RequestId
 		if requestId == "" {
 			requestId = xid.New().String()
 		}
@@ -1166,6 +1168,15 @@ func (fexec *FlowExecutor) Execute(state ExecutionStateOption) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("[Request `%s`] Failed to init flow, %v", fexec.id, err)
 	}
+	// status = fmt.Sprintf("[Request `%s`]", fexec.id)
+	status := ""
+	if stateSDefined {
+		status = status + " StateStore overridden"
+	}
+	if dataSOverride {
+		status = status + " DataStore overridden"
+	}
+	fexec.log(status)
 
 	// Make Context: make the request context from flow
 	context := fexec.createContext()
@@ -1318,7 +1329,13 @@ func (fexec *FlowExecutor) Execute(state ExecutionStateOption) ([]byte, error) {
 		}
 		fexec.dataStore.Cleanup()
 
-		fexec.exitChan <- struct{}{}
+		// Call execution completion handler
+		fexec.log("[Request `%s`] Calling completion handler\n", fexec.id)
+		err = fexec.executor.HandleExecutionCompletion(result)
+		if err != nil {
+			fexec.log("[Request `%s`] completion handler failed, error %v\n", fexec.id, err)
+		}
+		fexec.notifyChan <- fexec.id
 
 		resp = result
 	}
@@ -1355,7 +1372,7 @@ func (fexec *FlowExecutor) Stop(reqId string) error {
 		fexec.dataStore.Cleanup()
 	}
 
-	fexec.exitChan <- struct{}{}
+	fexec.notifyChan <- fexec.id
 
 	return nil
 }
@@ -1421,10 +1438,8 @@ func (fexec *FlowExecutor) Resume(reqId string) error {
 }
 
 // CreateFlowExecutor initiate a FlowExecutor with a provided Executor
-func CreateFlowExecutor(executor Executor) (fexec *FlowExecutor) {
-	fexec = &FlowExecutor{}
-	fexec.executor = executor
-	fexec.exitChan = make(chan struct{})
+func CreateFlowExecutor(executor Executor, notifyChan chan string) (fexec *FlowExecutor) {
+	fexec = &FlowExecutor{executor: executor, notifyChan: notifyChan}
 
 	return fexec
 }
