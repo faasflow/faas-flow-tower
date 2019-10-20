@@ -1,125 +1,263 @@
-{{ define "dashboard" }}
+{{ define "index" }}
 
 <!DOCTYPE html>
 <html lang="en">
 
-{{ template "header" }}
+<head>
 
-<body>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <div class="navbar navbar-expand-md navbar-dark bg-dark">
-        <div style="padding-right:20px;">
-                    <a href="#menu-toggle" class="btn btn-info" id="menu-toggle" data-toggle="tooltip" title="Click to hide/show menu">
-                              <span class="navbar-toggler-icon"></span>
-                    </a>
+  <title>FaaSFlow - Dashboard</title>
+
+  <!-- Custom fonts for this template-->
+  <link href="/function/faas-flow-dashboard/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="/function/faas-flow-dashboard/static/css/sb-admin-2.min.css" rel="stylesheet">
+
+  <!-- main script -->
+  <script type="text/javascript" src="/function/faas-flow-dashboard/static/js/main.js"></script>
+
+  <!-- Bootstrap core JavaScript-->
+  <script src="/function/faas-flow-dashboard/static/vendor/jquery/jquery.min.js"></script>
+  <script src="/function/faas-flow-dashboard/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Core plugin JavaScript-->
+  <script src="/function/faas-flow-dashboard/static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- PublicURL override -->
+  <script>
+    let serverAddr={{ .PublicURL }};
+  </script>
+
+  <!-- graphviz library dependency -->
+  <script src="//d3js.org/d3.v4.min.js"></script>
+  <script src="https://unpkg.com/viz.js@1.8.0/viz.js" type="javascript/worker"></script>
+
+  <!-- graphviz library -->
+  <script src="https://unpkg.com/d3-graphviz@1.4.0/build/d3-graphviz.min.js"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script src="/function/faas-flow-dashboard/static/js/sb-admin-2.min.js"></script>
+
+</head>
+
+<body id="page-top">
+
+  <!-- Page Wrapper -->
+  <div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-dark sidebar sidebar-dark accordion" id="accordionSidebar">
+
+      <!-- Sidebar - Brand -->
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="https://github.com/s8sg/faas-flow">
+        <div class="sidebar-brand-icon">
+	  <i class="fas fa-draw-polygon"></i>
         </div>
+        <div class="sidebar-brand-text mx-3">FASS-FLOW <sup>TOWER</sup></div>
+      </a>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                        <li class="nav-item active">
-                                <a class="nav-link" href="/function/faas-flow-dashboard" data-toggle="tooltip" title="click to visit dashboard">Home<span class="sr-only">(current)</span></a>
-                        </li>
-                        <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Monitoring
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="#">All Requests</a>
-                                        <div class="dropdown-divider"></div>
-                                        {{range .Functions}}
-					<a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}" data-toggle="tooltip" title="Click to view {{.Name}} monitoring information">{{.Name}}</a>
-                                        {{ end }}
-                                </div>
-                        </li>
-                </ul>
-                <span class="navbar-text">
-                      Faas-flow Dashboard
-                </span>
+      <!-- Divider -->
+      <hr class="sidebar-divider my-0">
+
+      <!-- Nav Item - Dashboard -->
+      <li class="nav-item">
+        <a class="nav-link" href="faas-flow-dashboard">
+          <i class="fas fa-fw fa-tachometer-alt"></i>
+          <span>Dashboard</span></a>
+      </li>
+
+
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+
+      <!-- Heading -->
+      <div class="sidebar-heading">
+        Requests
+      </div>
+
+      <li class="nav-item">
+	<a class="nav-link collapsed" href="/function/faas-flow-dashboard/requests/active">
+          <i class="fas fa-fw fa-forward"></i>
+          <span>Active Requests</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+	<a class="nav-link collapsed" href="/function/faas-flow-dashboard/requests/all">
+	  <i class="fas fa-fw fa-history"></i>
+          <span>History</span>
+        </a>
+      </li>
+
+
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+
+      <!-- Heading -->
+      <div class="sidebar-heading">
+        Flows
+      </div>
+
+      <!-- Nav Item - Pages Collapse Menu -->
+      {{ range .Functions }}
+      <li class="nav-item">
+	      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#{{.Name}}" aria-expanded="true" aria-controls="collapseTwo">
+          <!-- <i class="fas fa-fw fa-sitemap"></i> -->
+          <span>{{.Name}}</span>
+        </a>
+	    <div id="{{.Name}}" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+          <div class="bg-white py-2 collapse-inner rounded">
+            <h6 class="collapse-header">Manage</h6>
+            <a class="collapse-item" data-toggle="tooltip" title="Click to see {{.Name}} details" href="/function/faas-flow-dashboard/flow/info?flow-name={{ .Name }}">
+		      <i class="fas fa-fw fa-cogs"></i>
+		      <span>Details</span>
+	        </a>
+	        <h6 class="collapse-header">Requests</h6>
+            <a class="collapse-item" data-toggle="tooltip" title="Click to find all requests of {{.Name}} " href="/function/faas-flow-dashboard/flow/requests?flow-name={{ .Name }}">
+		      <i class="fas fa-fw fa-tasks"></i>
+		      <span>List</span>
+	        </a>
+            <a class="collapse-item" data-toggle="tooltip" title="Click to monitor requests of {{.Name}} " href="/function/faas-flow-dashboard/flow/request/monitor?flow-name={{ .Name }}">
+		      <i class="fas fa-fw fa-search-plus"></i>
+              <span>Monitor</span>
+            </a>
+          </div>
         </div>
-    </div>
-    <div id="wrapper">
-        <!-- Sidebar -->
-        <div id="sidebar-wrapper">
-            <ul class="sidebar-nav">
-                <li class="sidebar-brand">
-                    <a href="https://github.com/s8sg/faas-flow" data-toggle="tooltip" title="Click to visit faas-flow home page">
-                        Faas-Flow
-                    </a>
+      </li>
+      {{ end }}
+
+      <!-- Sidebar Toggler (Sidebar) -->
+      <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+      </div>
+
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+      <!-- Main Content -->
+      <div id="content">
+
+        <!-- Topbar -->
+        <nav class="navbar navbar-expand navbar-light bg-white mb-4 static-top shadow">
+
+          <!-- Sidebar Toggle (Topbar) -->
+          <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+            <i class="fa fa-bars"></i>
+          </button>
+
+
+          <!-- Topbar Navbar -->
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+
+            {{ if .LocationDepths }}
+              {{ range .LocationDepths }}
+
+                <li class="nav-item">
+		          <a class="nav-link" href="{{ .Link }}">
+                    <i class="fa fa-angle-right"> </i>
+                    {{ .Name }}
+                  </a>
                 </li>
+              {{ end }}
+	        {{ end }}
+            
+	        {{ if .CurrentLocation }}
 
-                {{range .Functions}}
-                <li>
-			<a href="#" name="function-switch" id="{{.Name}}" data-toggle="tooltip" title="Click to see {{.Name}} details">{{.Name}}</a>
+	          {{ if eq .CurrentLocation.Name "requests-choice" }}
+                <li class="nav-item dropdown active">
+                  <a class="nav-link dropdown-toggle active" href="#" id="navbardrop" data-toggle="dropdown">
+                    <i class="fa fa-angle-right"></i>
+                    Monitor
+                  </a>
+	              {{ if .Requests.TracingEnabled }}
+                    <div class="dropdown-menu">
+                    {{ range .Requests.Requests }}
+                      <a class="dropdown-item" id="{{ . }}" href="#">{{ . }}</a>
+		            {{ end }}
+                    </div>
+	              {{ end }}
                 </li>
-                {{ end }}
+              {{ end }}
 
-            </ul>
-        </div>
-        <!-- /#sidebar-wrapper -->
-        <!-- Welcome Page -->
-        <div id="welcome">
-            <div class="container-fluid">
-                <h1>Faas-Flow Dashboard</h1>
-                <div>
-                    <p>Faas-flow Dashboard provides a visual representation of the flow functions that are deployed on the <a href="https://www.openfaas.com/">openfaas</a>.</p>
-                    <p>In order to browse flow function via this dashboard, make sure to add <code>faas-flow : 1</code> at <code>labels</code> to all flow function</p>
-                    <p>For more details visit <a href="https://github.com/s8sg/faas-flow-tower/blob/master/README.md">here</a></p>
-                </div>
+              {{ if ne .CurrentLocation.Name "requests-choice" }}
+              <li class="nav-item">
+                <a class="nav-link active" href="{{ .CurrentLocation.Link }}">
+                  <i class="fa fa-angle-right"></i>
+                  {{ .CurrentLocation.Name }}
+                </a>
+              </li>
+              {{ end }}
 
-            </div>
-        </div>
+	        {{ end }}
+	        <!-- Other topbar item goes here -->
+          </ul>
+          </div>
 
-        <!-- Page Content -->
-        <div id="page-content-wrapper" style="visibility: hidden">
-            <div class="card border border-dark" style="width: 60vw;">
-                <div id="graph" style="width: 59.85vw; height: 50vh; overflow: hidden;" align="center" class="border border-secondary rounded card-img-top"> </div>
-                <div class="card-body bg-light">
-                   <h2 id="flow-name" class="card-title">Flow Name</h1>
-                   <p id="flow-desc" class="card-text">
-                   Flow Description
-                   </p>
-                </div>
-                <ul class="list-group list-group-flush">
-                       <li class="list-group-item" id="exec-count">Execution Count: </li>
-                   <li class="list-group-item" id="replica-count">Replicas: </li>
-                </ul>
-                <div class="card-body">
-                        <a id="link" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">Execute</a>
-                        <a id="trace" href="#" class="card-link btn btn-info" data-toggle="tooltip" title="Click to view monitoring information">Monitor</a>
-                        <a id="remove" href="#" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">Remove</a>
-                  </div>
-            </div>
+
+          <div class="topbar-divider d-none d-sm-block"></div>
+          <!-- END Topbar Navbar-->
+
+        </nav>
+        <!-- End of Topbar -->
+
+        <!-- Begin Page Content -->
+        <div class="container-fluid">
+    
+        {{ if eq .InnerHtml "dashboard" }}
+          {{ template "dashboard" .}}
+        {{ end }}
+
+        {{ if eq .InnerHtml "flow-info" }}
+          {{ template "flow-info" .}}
+        {{ end }}
+
+        {{ if eq .InnerHtml "requests" }}
+          {{ template "requests" .}}
+        {{ end }}
+
+        {{ if eq .InnerHtml "request-monitor" }}
+            {{ template "request-monitor" .}}
+        {{ end }}
+
         </div>
-        <!-- /#page-content-wrapper -->
+        <!-- /.container-fluid -->
+
+      </div>
+      <!-- End of Main Content -->
+
+      <!-- Footer -->
+      <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Created with love by S8SG and Friends</span>
+          </div>
+        </div>
+      </footer>
+      <!-- End of Footer -->
 
     </div>
-    <!-- /#wrapper -->
+    <!-- End of Content Wrapper -->
 
-    <!-- Bootstrap core JavaScript    --> 
-    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/jquery/jquery.min.js"></script>
-    <script type="text/javascript" src="faas-flow-dashboard?file=vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  </div>
+  <!-- End of Page Wrapper -->
 
-    <!-- Menu Toggle Script -->
-    <script>
-            $("#menu-toggle").click(function(elem) {
-                elem.preventDefault();
-                $("#wrapper").toggleClass("toggled");
-            });
-    </script>
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
 
-    <!-- PublicURL override -->
-    <script>
-          var serverAddr={{ .PublicURL }};
-    </script>
 
-    <!-- main Script -->
-    <script type="text/javascript" src="faas-flow-dashboard?file=js/main.js"></script> 
-
-    <!-- graphviz library dependency -->
-    <script src="//d3js.org/d3.v4.min.js"></script>
-    <script src="https://unpkg.com/viz.js@1.8.0/viz.js" type="javascript/worker"></script>
-    <!-- graphviz library -->
-    <script src="https://unpkg.com/d3-graphviz@1.4.0/build/d3-graphviz.min.js"></script>
 
 </body>
 

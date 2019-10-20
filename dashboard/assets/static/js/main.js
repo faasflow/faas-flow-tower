@@ -41,7 +41,7 @@ function attributer(datum, index, nodes) {
     }
 };
 
-
+/*
 // Update the content of content wrapper for function desc
 function updateFunctionDescContent(jsonObject) {
     var name = jsonObject["name"];
@@ -84,6 +84,16 @@ function updateFunctionDescContent(jsonObject) {
      .tweenShapes(false)
      .attributer(attributer)
      .renderDot(dag);
+};
+*/
+
+// updateGraph updates the graph
+function updateGraph(dag) {
+    d3.select("#graph")
+        .graphviz()
+        .tweenShapes(false)
+        .attributer(attributer)
+        .renderDot(dag);
 };
 
 // format function duration in sec
@@ -140,10 +150,10 @@ function drawBarChart(jsonObject) {
             duration: 1000,
             easing: 'out',
         },
-	hAxis:{
-	    minValue: (rstime/normalizer),
-	    maxValue: ((rstime+rduration)/normalizer),
-	},	
+	    hAxis:{
+	        minValue: (rstime/normalizer),
+	        maxValue: ((rstime+rduration)/normalizer),
+	    },
     };
     chart.draw(dataTable, options);
 };

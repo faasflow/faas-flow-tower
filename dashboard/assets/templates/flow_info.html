@@ -1,0 +1,47 @@
+{{ define "flow-info" }}
+
+<!-- Content Row -->
+<div class="row">
+
+  <div class="card border border-grey shadow shadow-sm" style="width: 70vw;">
+    <div id="graph" style="width: 69.85vw; height: 50vh; overflow: hidden;" align="center" class="rounded card-img-top">
+      <!-- DAG goes here -->
+    </div>
+    <div class="card-body bg-light">
+      <h2 id="request-id" class="card-title">Flow : {{ .Flow.Name }}</h2>
+      <p id="flow-desc" class="card-text">
+        {{ .Flow.Description }}
+      </p>
+    </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item" id="exec-count">Execution Count: {{ .Flow.InvocationCount }}</li>
+      <li class="list-group-item" id="replica-count">Replicas: {{ .Flow.Replicas }}</li>
+    </ul>
+    <div class="card-body">
+      <a id="link" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">
+        <i class="fa fa-play"></i>
+        Execute
+      </a>
+      <a id="trace" href="#" class="card-link btn btn-secondary" data-toggle="tooltip" title="Click to view monitoring information">
+        <i class="fa fa-tasks"></i>
+        Requests
+      </a>
+      <a id="trace" href="#" class="card-link btn btn-info" data-toggle="tooltip" title="Click to view monitoring information">
+        <i class="fa fa-search-plus"></i>
+        Monitor
+      </a>
+      <a id="remove" href="#" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">
+        <i class="fa fa-trash-alt"></i>
+        Remove
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  dot = "{{ .Flow.Dot }}";
+  updateGraph(dot);
+</script>
+
+{{ end }}
