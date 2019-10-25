@@ -34,9 +34,10 @@ type FlowDesc struct {
 }
 
 type FlowRequests struct {
-	Flow           string
-	TracingEnabled bool
-	Requests       map[string]string
+	Flow             string
+	TracingEnabled   bool
+	Requests         map[string]string
+	CurrentRequestID string
 }
 
 // NodeTrace traces of each nodes in a dag

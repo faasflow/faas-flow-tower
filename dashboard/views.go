@@ -113,12 +113,16 @@ func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
 		functions = make([]*Function, 0)
 	}
 
-	tracingEnabled := true
+	tracingEnabled := false
 	requests, err := listFlowRequests(flowName)
 	if err != nil {
 		log.Printf("failed to get requests, error: %v", err)
 		requests = make(map[string]string)
-		tracingEnabled = false
+	}
+
+	for range requests {
+		tracingEnabled = true
+		break
 	}
 
 	flowRequests := &FlowRequests{
@@ -168,18 +172,25 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 		functions = make([]*Function, 0)
 	}
 
-	tracingEnabled := true
+	tracingEnabled := false
 	requests, err := listFlowRequests(flowName)
 	if err != nil {
 		log.Printf("failed to get requests, error: %v", err)
 		requests = make(map[string]string)
-		tracingEnabled = false
+	}
+
+	currentRequestID := ""
+
+	for currentRequestID, _ = range requests {
+		tracingEnabled = true
+		break
 	}
 
 	flowRequests := &FlowRequests{
-		TracingEnabled: tracingEnabled,
-		Flow:           flowName,
-		Requests:       requests,
+		TracingEnabled:   tracingEnabled,
+		Flow:             flowName,
+		Requests:         requests,
+		CurrentRequestID: currentRequestID,
 	}
 
 	locationDepths := []*Location{
@@ -206,6 +217,9 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 		Requests: flowRequests,
 
 		Traces: &RequestTrace{
+			RequestID: currentRequestID,
+
+			// TODO: initialize
 			Duration: 0,
 			Status:   "unknown",
 		},

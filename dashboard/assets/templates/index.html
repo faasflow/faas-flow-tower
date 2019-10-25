@@ -20,9 +20,6 @@
   <!-- Custom styles for this template-->
   <link href="/function/faas-flow-dashboard/static/css/sb-admin-2.min.css" rel="stylesheet">
 
-  <!-- main script -->
-  <script type="text/javascript" src="/function/faas-flow-dashboard/static/js/main.js"></script>
-
   <!-- Bootstrap core JavaScript-->
   <script src="/function/faas-flow-dashboard/static/vendor/jquery/jquery.min.js"></script>
   <script src="/function/faas-flow-dashboard/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -42,8 +39,8 @@
   <!-- graphviz library -->
   <script src="https://unpkg.com/d3-graphviz@1.4.0/build/d3-graphviz.min.js"></script>
 
-  <!-- Custom scripts for all pages-->
-  <script src="/function/faas-flow-dashboard/static/js/sb-admin-2.min.js"></script>
+  <!-- main script -->
+  <script type="text/javascript" src="/function/faas-flow-dashboard/static/js/main.js"></script>
 
 </head>
 
@@ -164,7 +161,7 @@
               {{ range .LocationDepths }}
 
                 <li class="nav-item">
-		          <a class="nav-link" href="{{ .Link }}">
+		          <a class="nav-link text-capitalize" href="{{ .Link }}">
                     <i class="fa fa-angle-right"> </i>
                     {{ .Name }}
                   </a>
@@ -176,11 +173,20 @@
 
 	          {{ if eq .CurrentLocation.Name "requests-choice" }}
                 <li class="nav-item dropdown active">
-                  <a class="nav-link dropdown-toggle active" href="#" id="navbardrop" data-toggle="dropdown">
+                  {{ if not .Requests.TracingEnabled }}
+                  <a class="btn btn-secondary dropdown-toggle text-uppercase disabled" href="#" id="navbardrop" data-toggle="dropdown">
                     <i class="fa fa-angle-right"></i>
-                    Monitor
+                    <span id="selected-request">
+                    </span>
                   </a>
+                  {{ end }}
 	              {{ if .Requests.TracingEnabled }}
+                    <a class="btn btn-secondary dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                      <i class="fa fa-angle-right"></i>
+                      <span id="selected-request">
+                      {{ .Requests.CurrentRequestID }}
+                    </span>
+                    </a>
                     <div class="dropdown-menu">
                     {{ range .Requests.Requests }}
                       <a class="dropdown-item" id="{{ . }}" href="#">{{ . }}</a>
@@ -192,7 +198,7 @@
 
               {{ if ne .CurrentLocation.Name "requests-choice" }}
               <li class="nav-item">
-                <a class="nav-link active" href="{{ .CurrentLocation.Link }}">
+                <a class="nav-link active text-capitalize" href="{{ .CurrentLocation.Link }}">
                   <i class="fa fa-angle-right"></i>
                   {{ .CurrentLocation.Name }}
                 </a>
@@ -257,7 +263,8 @@
     <i class="fas fa-angle-up"></i>
   </a>
 
-
+  <!-- Custom scripts for all pages-->
+  <script src="/function/faas-flow-dashboard/static/js/sb-admin-2.min.js"></script>
 
 </body>
 
