@@ -55,7 +55,7 @@ services:
                 delay: 10s
                 failure_action: continue
 
-    jaeger:
+    jaegertracing:
         image: jaegertracing/all-in-one:1.8
         ports: 
             - 5775:5775/udp
@@ -65,6 +65,8 @@ services:
             - 16686:16686
             - 14268:14268
             - 9411:9411
+        networks:
+            - func_functions
         environment:
             COLLECTOR_ZIPKIN_HTTP_PORT: "9411"
         deploy:
