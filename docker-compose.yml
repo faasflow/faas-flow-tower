@@ -1,0 +1,92 @@
+version: "3.3"
+services:
+    minio:        
+        image: minio/minio:latest
+        ports:
+            - 9000:9000
+        networks:
+            - func_functions
+        environment:
+            MINIO_SECRET_KEY_FILE: "s3-secret-key"
+            MINIO_ACCESS_KEY_FILE: "s3-access-key"
+        deploy:
+            replicas: 1
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 20
+                window: 120s
+            placement:
+                constraints:
+                    - "node.role == manager"
+                    - "node.platform.os == linux"
+        secrets:
+            - s3-secret-key
+            - s3-access-key
+        command: "server /export"
+            
+    consul:        
+        image: s8sg/consul
+        ports:
+            - 8500:8500
+        labels: [app=consul]
+        networks:
+            - func_functions
+        environment:
+            CONSUL_LOCAL_CONFIG: '{"skip_leave_on_interrupt": true}'
+            CONSUL_BIND_INTERFACE: "eth0"
+            CONSUL: "consul"
+            CONSUL_CHECK_LEADER: "true"
+            CONSUL_HTTP_AUTH: "admin:admin"
+        deploy:
+            replicas: 3
+            placement: 
+                constraints: [node.role == manager]
+            resources:
+                reservations:
+                    memory: 128M
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+            update_config:
+                parallelism: 1
+                delay: 10s
+                failure_action: continue
+
+    jaeger:
+        image: jaegertracing/all-in-one:1.8
+        ports: 
+            - 5775:5775/udp
+            - 6831:6831/udp
+            - 6832:6832/udp
+            - 5778:5778
+            - 16686:16686
+            - 14268:14268
+            - 9411:9411
+        environment:
+            COLLECTOR_ZIPKIN_HTTP_PORT: "9411"
+        deploy:
+            replicas: 1
+            placement:
+                constraints: [node.role == manager]
+            resources:
+                reservations:
+                    memory: 128M
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 3
+                window: 120s
+
+networks:
+    func_functions:
+        external:
+            name: func_functions
+
+secrets:
+    s3-secret-key:
+        external: true
+    s3-access-key:
+        external: true
