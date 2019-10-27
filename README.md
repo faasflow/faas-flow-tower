@@ -67,10 +67,10 @@ environment:
   # gateway_url: "http://openfaas.jaegertracing:8080/" (if OpenFaaS deployed in kubernets)
 ```
 
-**Gateway URL**   
+###### Gateway URL   
 Change the `gateway_url` into `http://openfaas.gateway:8080/` if OpenFaaS deployed in the kubernets, otherwise set it to `http://gateway:8080/` for swarm.    
 
-**Trace URL**  
+###### Trace URL
 Set the `trace_url` to the swarm node ip if OpenFaaS deployed in the kubernets. To get a swarm node IP use
 ```
 docker node inspect self --format '{{ .Status.Addr  }}'
