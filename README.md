@@ -78,7 +78,7 @@ docker node inspect self --format '{{ .Status.Addr  }}'
 Set the trace url ('trace_url') to `http://jaegertracing:16686/` if OpenFaaS is deployed in Swarm.   
 
 
-###### Deploy with the script
+##### Deploy with the script
 ```
 ./deploy.sh
 ```
