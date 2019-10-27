@@ -32,19 +32,46 @@ FaaS-Flow Tower comes with the default `StateStore`, `DataStore` and `EventManag
 
 
 #### Deploy in Swarm 
-To deploy in OpenFaaS need to be running. The local host need to have swarm node initialized. 
+To deploy in swarm the current need to have swarm node initialized. To initialize a swarm cluster follow this guide
+https://docs.docker.com/engine/swarm/swarm-mode/.  
+   
+FaasFlow Tower also requires the OpenFaaS to be deployed. You can either have your OpenFaaS deployed in Kubernets otherwise in Swarm
+
+##### Update the Configuration
+Based on your deployment you may need to update the configuration before you use the deployment script
+
+###### Set OpenFaaS Gateway
+Update the `stack.yml` with the gateway url
+```yaml
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+```
+
+###### Set Configuration File
+Configuration are defined in `conf.yml`. Change the `gateway_url` into `http://openfaas.gateway:8080/` if OpenFaaS deployed in the kubernets, otherwise set it to `http://gateway:8080/` for swarm. Set the `trace_url` to the swarm node ip if OpenFaaS deployed in the kubernets. To get a swarm node IP use
+```
+docker node inspect self --format '{{ .Status.Addr  }}'
+```
+Set the trace url ('trace_url') to `http://jaegertracing:16686/` if openFaaS deployed in Swarm. 
+
+```yaml
+environment:
+  gateway_url: "http://gateway:8080/"
+  # gateway_url: "http://openfaas.gateway:8080/" (if OpenFaaS deployed in kubernets)
+  gateway_public_uri: "http://localhost:8080"
+  basic_auth: true
+  secret_mount_path: "/var/openfaas/secrets"
+  trace_url: "http://jaegertracing:16686/"
+  # gateway_url: "http://openfaas.jaegertracing:8080/" (if OpenFaaS deployed in kubernets)
+```
+
 ###### Clone the repo
 ```
 git clone https://github.com/s8sg/faas-flow-tower
 cd faas-flow-tower
 ```
-###### Set OpenFaaS Gateway
-Update the `stack.yml` with the gateway url
-```
-provider:
-  name: faas
-  gateway: http://127.0.0.1:8080
-```
+
 ###### Deploy with the script
 ```
 ./deploy.sh
