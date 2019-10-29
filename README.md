@@ -71,7 +71,7 @@ environment:
 Change the `gateway_url` into `http://openfaas.gateway:8080/` if OpenFaaS deployed in the kubernets, otherwise set it to `http://gateway:8080/` for swarm.    
 
 ###### Trace URL
-Set the `trace_url` to the swarm node ip if OpenFaaS deployed in the kubernets. To get a swarm node IP use
+Set the `trace_url` to the swarm node ip if OpenFaaS deployed in the kubernets. To get a swarm node IP run teh below command on the host
 ```
 docker node inspect self --format '{{ .Status.Addr  }}'
 ```
@@ -119,3 +119,30 @@ helm init --skip-refresh --upgrade --service-account tiller
 ```
 
 > Note: this step installs a server component in your cluster. It can take anywhere between a few seconds to a few minutes to be installed properly. You should see tiller appear on: `kubectl get pods -n kube-system`.
+
+###### Deploy minio (Default DataStore)
+
+* Generate secrets for Minio
+```bash
+SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+* Store the secrets in Kubernetes
+```bash
+kubectl create secret generic -n openfaas-fn \
+ s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
+kubectl create secret generic -n openfaas-fn \
+ s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
+```
+
+* Install Minio with helm
+```bash
+helm install --name minio --namespace openfaas \
+   --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY \
+   --set replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
+  stable/minio
+```
+
+* The DNS for value for minio should be `minio.openfaas:9000`
+
+###### Deploy consul (Default StateStore)
