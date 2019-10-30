@@ -1,53 +1,40 @@
 # faas-flow-tower
 A monitoring function stack to visualize faas-flow functions and requests in realtime
     
-### Dashboard
 Dashboard provide details for each faas-flow functions incuding graphical representation of dags based on function definition
-![alt dashboard](doc/dashboard.png)
-To make flow functions visible in dashboard add the below labels in `stack.yml` of each flow functions  
-```
-annotations:
-   faas-flow-desc: "option labels to provide flow descriptions"
-labels:
-   faas-flow : 1
-``` 
-  
-   
-### Monitoring
+![alt dashboard](doc/dashboard.png)   
+
 Tower provides realtime timeline for requests for individual nodes of each faas-flow functions
-![alt dashboard](doc/monitoring.png)
-Faasflow fetches the monitoring information from trace server    
-For flow function enable tracing `enable_tracing: true` and set trace server url `trace_server: "jaegertracing:5775"`    
-Provide the same trace server api url `trace_url: "jaegertracing:16686"` in `conf.yml`   
+![alt dashboard](doc/monitoring.png)    
    
 
 ### Getting Started
-FaaS-Flow Tower comes with the default `StateStore`, `DataStore` and `EventManager`
+FaaS-Flow Tower comes with the default `StateStore`, `DataStore` and `EventManager` for your flow functions. 
 
- |Item|Implementation|
- |---|---|
- |StateStore|[Consul StateStore](https://github.com/s8sg/faas-flow-consul-statestore)|
- |DataStore|[Minio DataStore](https://github.com/s8sg/faas-flow-minio-datastore)|
- |EventStore|[Jaguar](https://github.com/jaegertracing/jaeger)|
+ |Item|Implementation|Swarm URL|Kubernets URL|
+ |---|---|---|---|
+ |StateStore|[Consul StateStore](https://github.com/s8sg/faas-flow-consul-statestore)|`consul:8500`|`consul.openfaas:8500`|
+ |DataStore|[Minio DataStore](https://github.com/s8sg/faas-flow-minio-datastore)|`minio:9000`|`minio.openfaas:9000`|
+ |EventManager|[Jaguar](https://github.com/jaegertracing/jaeger)|`jaegertracing:16686`|`jaegertracing.openfaas:16686`|
 
-    
-FaasFlow Tower also requires the OpenFaaS to be deployed. You can either have your OpenFaaS deployed in Kubernets otherwise in Swarm. To deploy OpenFaaS follow this guide: https://docs.openfaas.com/deployment/    
+### Deploy OpenFaaS
+FaasFlow Tower requires the OpenFaaS to be deployed and the OpenFaaS Cli. You can either have your OpenFaaS deployed in Kubernets otherwise in Swarm. To deploy OpenFaaS and to install the OpenFaaS cli client follow this guide: https://docs.openfaas.com/deployment/      
 
 > Note: If you have deployed your OpenFaaS in Kubenets, it is recomanded to deploy FaaSFlow Tower services in same environment to simplify configuration
 
 
-#### Deploy in Swarm 
+### Deploy in Swarm 
 
-##### Pre-reqs:
+#### Pre-reqs:
 To deploy in swarm docker swarm need to installed and the targeted node need to have swarm cluster initialized. To initialize a swarm cluster follow this guide: https://docs.docker.com/engine/swarm/swarm-mode/.     
 
-##### Clone the Repo
+#### Clone the Repo
 ```sh
 git clone https://github.com/s8sg/faas-flow-tower
 cd faas-flow-tower
 ```
 
-##### Set OpenFaaS Gateway
+#### Set OpenFaaS Gateway
 Update the `stack.yml` with your OpenFaaS gateway's URL
 ```yaml
 provider:
@@ -55,7 +42,7 @@ provider:
   gateway: http://127.0.0.1:8080
 ```
 
-##### Set Configuration
+#### Set Configuration
 Configuration are defined in `conf.yml`. Based on your deployment you may need to update the configuration before you use the deployment script.   
 ```yaml
 environment:
@@ -65,25 +52,25 @@ environment:
   secret_mount_path: "/var/openfaas/secrets"
   trace_url: "http://jaegertracing:16686/"
 ```
-###### Gateway URL    
+##### Gateway URL    
 Change the `gateway_url` into `http://gateway:8080` 
      
-###### Trace URL     
+##### Trace URL     
 Set the trace url ('trace_url') to `http://jaegertracing:16686/` 
 
-##### Deploy with the script
+#### Deploy with the script
 ```sh
 ./deploy.sh
 ```
 This script will deploy the OpenFaaS functions in the OpenFaaS and the other services in Swarm
    
+  
     
-    
-#### Deploy in Kubernets
+### Deploy in Kubernets
 For deploying in kubernets Faas-Flow Tower uses helm charts for the defaults    
 
-##### Pre-reqs:
-###### Install the helm CLI/client
+#### Pre-reqs:
+##### Install the helm CLI/client
 
 Instructions for latest Helm install
 
@@ -95,7 +82,7 @@ curl "https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get" | ba
 ```sh
 brew install kubernetes-helm
 ```
-###### Install tiller
+##### Install tiller
 
 * Create RBAC permissions for tiller
 
@@ -114,7 +101,7 @@ helm init --skip-refresh --upgrade --service-account tiller
 
 > Note: this step installs a server component in your cluster. It can take anywhere between a few seconds to a few minutes to be installed properly. You should see tiller appear on: `kubectl get pods -n kube-system`.
 
-##### Deploy minio (Default DataStore)
+#### Deploy minio (Default DataStore)
 Minio is used as the default DataStore in FaaSFlow    
    
 * Generate secrets for Minio
@@ -140,46 +127,73 @@ helm install --name minio --namespace openfaas \
 
 * The DNS address for minio will be `minio.openfaas:9000`
 
-##### Deploy etcd (Default StateStore)
-ETCD is used as the default StateStore in FaaSFlow     
+#### Deploy Consul (Default StateStore)
+Consul is used as the default StateStore in FaaSFlow     
    
-* Install ETCD with helm
+* Install Consul with helm
 ```sh
-helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
-helm install --name etcd --namespace openfaas incubator/etcd
+helm install --name consul --namespace openfaas stable/consul
 ```
 
-* The DNS address for etcd will be `etcd.openfaas:2379`
+* The DNS address for consul will be `consul.openfaas:8500`
 
-##### Deploy Jaeger for Tracing
+#### Deploy Jaeger for Tracing
 Jaeger is used as a tracing backend by the FaaSFlow 
 
 * Install Jaeger with helm
 ```sh
-helm install incubator/jaeger --name jaeger --namespace openfaas \
+helm install incubator/jaeger --name jaegertracing --namespace openfaas \
      --set cassandra.config.max_heap_size=1024M \
      --set cassandra.config.heap_new_size=256M --set cassandra.resources.requests.memory=2048Mi \
      --set cassandra.resources.requests.cpu=0.4 --set cassandra.resources.limits.memory=2048Mi \
      --set cassandra.resources.limits.cpu=0.4
 ```
    
-* The DNS address for jaeger will be `jaeger.openfaas:16686`
+* The DNS address for jaeger will be `jaegertracing.openfaas:16686`
 
+#### Set OpenFaaS Gateway
+Update the `stack.yml` with your OpenFaaS gateway's URL
+```yaml
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+```
 
-##### Set Configuration
+#### Set Configuration
 Configuration are defined in `conf.yml`. Based on your deployment you may need to update the configuration before you use the deployment script.   
 ```yaml
 environment:
-  gateway_url: "http://openfaas.gateway:8080/" (if deployed in kubernets)
+  gateway_url: "http://openfaas.gateway:8080/" 
   # gateway_public_uri: "http://localhost:8080"
   basic_auth: true
   secret_mount_path: "/var/openfaas/secrets"
-  trace_url: "http://openfaas.jaegertracing:16686/" (if deployed in kubernets)
+  trace_url: "http://openfaas.jaegertracing:16686/" 
 ```
-###### Gateway URL    
+
+##### Gateway URL    
 Change the `gateway_url` into `http://openfaas.gateway:8080/` 
      
-###### Trace URL     
+##### Trace URL     
 Set the trace url ('trace_url') to `http://openfaas.jaegertracing:16686/` 
 
+#### Deploy Functions
+Deploy the OpenFaaS functions in the OpenFaaS 
+```sh
+faas deploy
+```
 
+### Access the Dashboard
+Once deployed the dashboard will be available as a openfaas function at: [localhost:8080/function/faas-flow-dashboard](localhost:8080/function/faas-flow-dashboard)     
+Change the `localhost:8080` to your openfaas Gateway URL    
+
+#### Make your flow visible 
+To make flow functions visible in the dashboard add `faas-flow : 1` label in `stack.yml` of each flow functions  
+```
+annotations:
+   faas-flow-desc: "option labels to provide flow descriptions"
+labels:
+   faas-flow : 1
+``` 
+   
+#### Monitoring
+Faasflow fetches the monitoring information from jaeger trace server. To enable tracing for flow function add environment `enable_tracing: true` and set trace server url `trace_server: "jaegertracing:5775"` in `stack.yml`. For kubernets use `trace_server: "jaegertracing.openfaas:5775"`
