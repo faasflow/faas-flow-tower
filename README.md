@@ -42,7 +42,7 @@ FaasFlow Tower also requires the OpenFaaS to be deployed. You can either have yo
 To deploy in swarm docker swarm need to installed and the targeted node need to have swarm cluster initialized. To initialize a swarm cluster follow this guide: https://docs.docker.com/engine/swarm/swarm-mode/.     
 
 ##### Clone the Repo
-```
+```sh
 git clone https://github.com/s8sg/faas-flow-tower
 cd faas-flow-tower
 ```
@@ -60,12 +60,10 @@ Configuration are defined in `conf.yml`. Based on your deployment you may need t
 ```yaml
 environment:
   gateway_url: "http://gateway:8080/"
-  # gateway_url: "http://openfaas.gateway:8080/" (if deployed in kubernets)
-  gateway_public_uri: "http://localhost:8080"
+  # gateway_public_uri: "http://localhost:8080"
   basic_auth: true
   secret_mount_path: "/var/openfaas/secrets"
   trace_url: "http://jaegertracing:16686/"
-  # gateway_url: "http://openfaas.jaegertracing:8080/" (if deployed in kubernets)
 ```
 ###### Gateway URL    
 Change the `gateway_url` into `http://gateway:8080` 
@@ -74,10 +72,10 @@ Change the `gateway_url` into `http://gateway:8080`
 Set the trace url ('trace_url') to `http://jaegertracing:16686/` 
 
 ##### Deploy with the script
-```
+```sh
 ./deploy.sh
 ```
-This script will deploy the function in the OpenFaaS and the other services in Swarm
+This script will deploy the OpenFaaS functions in the OpenFaaS and the other services in Swarm
    
     
     
@@ -90,13 +88,13 @@ For deploying in kubernets Faas-Flow Tower uses helm charts for the defaults
 Instructions for latest Helm install
 
 * On Linux and Mac/Darwin:
-
+```
       curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-
+```
 * Or via Homebrew on Mac:
-
+```
       brew install kubernetes-helm
-
+```
 ###### Install tiller
 
 * Create RBAC permissions for tiller
@@ -120,12 +118,12 @@ helm init --skip-refresh --upgrade --service-account tiller
 Minio is used as the default DataStore in FaaSFlow    
    
 * Generate secrets for Minio
-```bash
+```sh
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ```
 * Store the secrets in Kubernetes
-```bash
+```sh
 kubectl create secret generic -n openfaas-fn \
  s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
 kubectl create secret generic -n openfaas-fn \
@@ -133,22 +131,55 @@ kubectl create secret generic -n openfaas-fn \
 ```
 
 * Install Minio with helm
-```bash
+```sh
 helm install --name minio --namespace openfaas \
    --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY \
    --set replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort \
   stable/minio
 ```
 
-* The DNS value for minio should be `minio.openfaas:9000`
+* The DNS address for minio will be `minio.openfaas:9000`
 
 ##### Deploy etcd (Default StateStore)
 ETCD is used as the default StateStore in FaaSFlow     
    
 * Install ETCD with helm
-```bash
+```sh
 helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+helm install --name etcd --namespace openfaas incubator/etcd
 ```
 
+* The DNS address for etcd will be `etcd.openfaas:2379`
+
+##### Deploy Jaeger for Tracing
+Jaeger is used as a tracing backend by the FaaSFlow 
+
+* Install Jaeger with helm
+```sh
+helm install incubator/jaeger --name jaeger --namespace openfaas \
+     --set cassandra.config.max_heap_size=1024M \
+     --set cassandra.config.heap_new_size=256M --set cassandra.resources.requests.memory=2048Mi \
+     --set cassandra.resources.requests.cpu=0.4 --set cassandra.resources.limits.memory=2048Mi \
+     --set cassandra.resources.limits.cpu=0.4
+```
+   
+* The DNS address for jaeger will be `jaeger.openfaas:16686`
+
+
+##### Set Configuration
+Configuration are defined in `conf.yml`. Based on your deployment you may need to update the configuration before you use the deployment script.   
+```yaml
+environment:
+  gateway_url: "http://openfaas.gateway:8080/" (if deployed in kubernets)
+  # gateway_public_uri: "http://localhost:8080"
+  basic_auth: true
+  secret_mount_path: "/var/openfaas/secrets"
+  trace_url: "http://openfaas.jaegertracing:16686/" (if deployed in kubernets)
+```
+###### Gateway URL    
+Change the `gateway_url` into `http://openfaas.gateway:8080/` 
+     
+###### Trace URL     
+Set the trace url ('trace_url') to `http://openfaas.jaegertracing:16686/` 
 
 
