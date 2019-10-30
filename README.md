@@ -30,15 +30,16 @@ FaaS-Flow Tower comes with the default `StateStore`, `DataStore` and `EventManag
  |DataStore|[Minio DataStore](https://github.com/s8sg/faas-flow-minio-datastore)|
  |EventStore|[Jaguar](https://github.com/jaegertracing/jaeger)|
 
+    
+FaasFlow Tower also requires the OpenFaaS to be deployed. You can either have your OpenFaaS deployed in Kubernets otherwise in Swarm. To deploy OpenFaaS follow this guide: https://docs.openfaas.com/deployment/    
+
+> Note: If you have deployed your OpenFaaS in Kubenets, it is recomanded to deploy FaaSFlow Tower services in same environment to simplify configuration
+
 
 #### Deploy in Swarm 
 
 ##### Pre-reqs:
-To deploy in swarm docker swarm need to installed and the targeted node need to have swarm cluster initialized. To initialize a swarm cluster follow this guide: https://docs.docker.com/engine/swarm/swarm-mode/.  
-   
-FaasFlow Tower also requires the OpenFaaS to be deployed. You can either have your OpenFaaS deployed in Kubernets otherwise in Swarm. To deploy OpenFaaS follow this guide: https://docs.openfaas.com/deployment/
-
-> Note: If you have deployed your OpenFaaS in Kubenets, it is recomanded to deploy FaaSFlow Tower services in same environment
+To deploy in swarm docker swarm need to installed and the targeted node need to have swarm cluster initialized. To initialize a swarm cluster follow this guide: https://docs.docker.com/engine/swarm/swarm-mode/.     
 
 ##### Clone the Repo
 ```
@@ -47,7 +48,7 @@ cd faas-flow-tower
 ```
 
 ##### Set OpenFaaS Gateway
-Update the `stack.yml` with the gateway url
+Update the `stack.yml` with your OpenFaaS gateway's URL
 ```yaml
 provider:
   name: faas
@@ -59,34 +60,29 @@ Configuration are defined in `conf.yml`. Based on your deployment you may need t
 ```yaml
 environment:
   gateway_url: "http://gateway:8080/"
-  # gateway_url: "http://openfaas.gateway:8080/" (if OpenFaaS deployed in kubernets)
+  # gateway_url: "http://openfaas.gateway:8080/" (if deployed in kubernets)
   gateway_public_uri: "http://localhost:8080"
   basic_auth: true
   secret_mount_path: "/var/openfaas/secrets"
   trace_url: "http://jaegertracing:16686/"
-  # gateway_url: "http://openfaas.jaegertracing:8080/" (if OpenFaaS deployed in kubernets)
+  # gateway_url: "http://openfaas.jaegertracing:8080/" (if deployed in kubernets)
 ```
-
-###### Gateway URL   
-Change the `gateway_url` into `http://openfaas.gateway:8080/` if OpenFaaS deployed in the kubernets, otherwise set it to `http://gateway:8080/` for swarm.    
-
-###### Trace URL
-Set the `trace_url` to the swarm node ip if OpenFaaS deployed in the kubernets. To get a swarm node IP run teh below command on the host
-```
-docker node inspect self --format '{{ .Status.Addr  }}'
-```
-Set the trace url ('trace_url') to `http://jaegertracing:16686/` if OpenFaaS is deployed in Swarm.   
-
+###### Gateway URL    
+Change the `gateway_url` into `http://gateway:8080` 
+     
+###### Trace URL     
+Set the trace url ('trace_url') to `http://jaegertracing:16686/` 
 
 ##### Deploy with the script
 ```
 ./deploy.sh
 ```
 This script will deploy the function in the OpenFaaS and the other services in Swarm
-
-
+   
+    
+    
 #### Deploy in Kubernets
-For deploying in kubernets Faas-Flow Tower provide helm charts 
+For deploying in kubernets Faas-Flow Tower uses helm charts for the defaults    
 
 ##### Pre-reqs:
 ###### Install the helm CLI/client
@@ -120,8 +116,9 @@ helm init --skip-refresh --upgrade --service-account tiller
 
 > Note: this step installs a server component in your cluster. It can take anywhere between a few seconds to a few minutes to be installed properly. You should see tiller appear on: `kubectl get pods -n kube-system`.
 
-###### Deploy minio (Default DataStore)
-
+##### Deploy minio (Default DataStore)
+Minio is used as the default DataStore in FaaSFlow    
+   
 * Generate secrets for Minio
 ```bash
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
@@ -143,6 +140,15 @@ helm install --name minio --namespace openfaas \
   stable/minio
 ```
 
-* The DNS for value for minio should be `minio.openfaas:9000`
+* The DNS value for minio should be `minio.openfaas:9000`
 
-###### Deploy consul (Default StateStore)
+##### Deploy etcd (Default StateStore)
+ETCD is used as the default StateStore in FaaSFlow     
+   
+* Install ETCD with helm
+```bash
+helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+```
+
+
+
