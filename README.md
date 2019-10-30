@@ -88,12 +88,12 @@ For deploying in kubernets Faas-Flow Tower uses helm charts for the defaults
 Instructions for latest Helm install
 
 * On Linux and Mac/Darwin:
-```
-      curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+```sh
+curl "https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get" | bash
 ```
 * Or via Homebrew on Mac:
-```
-      brew install kubernetes-helm
+```sh
+brew install kubernetes-helm
 ```
 ###### Install tiller
 
