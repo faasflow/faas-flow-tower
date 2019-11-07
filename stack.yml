@@ -19,13 +19,12 @@ functions:
     handler: ./list-flow-functions
     image: s8sg/list-flow-functions:1.0.0
     environment:
-      write_debug: true
       read_debug: true
       combine_output: false
     environment_file:
       - conf.yml
     secrets:
-      - basic-auth-user
+      - basic-auth-user          # OpenFaaS auth credential
       - basic-auth-password
     labels:
       com.openfaas.scale.zero: "false"

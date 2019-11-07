@@ -120,15 +120,24 @@ func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
 		requests = make(map[string]string)
 	}
 
-	for range requests {
+	requestsDetails := make(map[string]*RequestTrace)
+
+	for request, traceId := range requests {
+		requestsDetails[request], err = listRequestTraces(traceId)
+		if err != nil {
+			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
+				request, traceId, err)
+			requestsDetails[request] = &RequestTrace{
+				TraceId: traceId,
+			}
+		}
 		tracingEnabled = true
-		break
 	}
 
 	flowRequests := &FlowRequests{
 		TracingEnabled: tracingEnabled,
 		Flow:           flowName,
-		Requests:       requests,
+		Requests:       requestsDetails,
 	}
 
 	locationDepths := []*Location{
@@ -179,17 +188,29 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 		requests = make(map[string]string)
 	}
 
+	requestsDetails := make(map[string]*RequestTrace)
 	currentRequestID := ""
 
-	for currentRequestID, _ = range requests {
+	for request, traceId := range requests {
+		requestsDetails[request], err = listRequestTraces(traceId)
+		if err != nil {
+			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
+				request, traceId, err)
+			requestsDetails[request] = &RequestTrace{
+				TraceId: traceId,
+			}
+		}
+
+		if len(currentRequestID) == 0 {
+			currentRequestID = request
+		}
 		tracingEnabled = true
-		break
 	}
 
 	flowRequests := &FlowRequests{
 		TracingEnabled:   tracingEnabled,
 		Flow:             flowName,
-		Requests:         requests,
+		Requests:         requestsDetails,
 		CurrentRequestID: currentRequestID,
 	}
 

@@ -134,22 +134,23 @@ func listRequestTraces(requestTraceId string) (*RequestTrace, error) {
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 
 	response, err := c.Do(request)
-	if err == nil {
-		if response.Body != nil {
-			defer response.Body.Close()
-			bodyBytes, bErr := ioutil.ReadAll(response.Body)
-			if bErr != nil {
-				return nil, fmt.Errorf("failed to get traces, %v", bErr)
-			}
-
-			trace := &RequestTrace{}
-			mErr := json.Unmarshal(bodyBytes, trace)
-			if mErr != nil {
-				return nil, fmt.Errorf("failed to get traces, %v", mErr)
-			}
-
-			return trace, nil
-		}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get traces, %v", err)
 	}
-	return nil, fmt.Errorf("failed to get traces, %v", err)
+
+	defer response.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get traces, %v", err)
+	}
+
+	trace := &RequestTrace{}
+	err = json.Unmarshal(bodyBytes, trace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get traces, %v", err)
+	}
+
+	trace.TraceId = requestTraceId
+
+	return trace, nil
 }

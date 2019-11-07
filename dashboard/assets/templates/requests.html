@@ -2,29 +2,36 @@
 
 <!-- Content Row -->
 <div class="row">
-    <div class="card border border-grey shadow shadow-sm h-100 py-2" style="width: 70vw;">
+    <div class="card border border-grey shadow shadow-sm h-100 py-2" style="width: 70vw; height: 50vh;">
         {{ if .Requests.TracingEnabled }}
         <div class="card-body">
-            <h5 class="card-title">Requests for {{ .Requests.Flow }}</h5>
-            <table style="width: 69.85vw; height: 50vh; overflow: hidden;" align="center"
-                 class="rounded table table-hover">
+            {{ $flowName := .Requests.Flow }}
+            <h5 class="card-title">Requests for {{ $flowName }}</h5>
+            <table style="width: 68vw; overflow: hidden;" align="center" class="rounded table">
                 <thead>
                 <tr>
                     <th>Request ID</th>
+                    <th>Trace ID</th>
                     <th>State</th>
                     <th>Start Time</th>
                     <th>Duration</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
-                {{ range .Requests.Requests }}
+                {{ range $key, $value := .Requests.Requests }}
                 <tbody>
                     <tr>
-                        <td> {{ . }}</td>
-                        <td> unknown </td>
-                        <td> unknown </td>
-                        <td> unknown </td>
-                        <td> unknown </td>
+                        <td> <strong>{{ $key }}</strong> </td>
+                        <td> {{ $value.TraceId }} </td>
+                        <td> {{ $value.Status }} </td>
+                        <td> {{ $value.StartTime }} </td>
+                        <td> {{ $value.Duration }} </td>
+                        <td>
+                            <a href="/function/faas-flow-dashboard/flow/request/monitor?flow-name={{ $flowName }}&request={{ $key }}" class="card-link btn btn-info" data-toggle="tooltip" title="Click to view monitoring information">
+                                <i class="fa fa-search-plus"></i>
+                                Monitor
+                            </a>
+                        </td>
                     </tr>
                 </tbody>
                 {{ end }}

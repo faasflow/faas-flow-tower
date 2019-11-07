@@ -18,15 +18,15 @@
       <li class="list-group-item" id="replica-count">Replicas: {{ .Flow.Replicas }}</li>
     </ul>
     <div class="card-body">
-      <a id="link" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">
+      <a id="execute" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">
         <i class="fa fa-play-circle"></i>
         Execute
       </a>
-      <a id="trace" href="#" class="card-link btn btn-secondary" data-toggle="tooltip" title="Click to view monitoring information">
+      <a href="/function/faas-flow-dashboard/flow/requests?flow-name={{ .Flow.Name }}" class="card-link btn btn-secondary" data-toggle="tooltip" title="Click to view monitoring information">
         <i class="fa fa-tasks"></i>
         Requests
       </a>
-      <a id="trace" href="#" class="card-link btn btn-info" data-toggle="tooltip" title="Click to view monitoring information">
+      <a href="/function/faas-flow-dashboard/flow/request/monitor?flow-name={{ .Flow.Name }}" class="card-link btn btn-info" data-toggle="tooltip" title="Click to view monitoring information">
         <i class="fa fa-search-plus"></i>
         Monitor
       </a>

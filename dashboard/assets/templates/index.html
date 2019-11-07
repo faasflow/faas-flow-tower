@@ -191,8 +191,8 @@
                     </span>
                     </a>
                     <div class="dropdown-menu">
-                    {{ range .Requests.Requests }}
-                      <a class="dropdown-item" id="{{ . }}" href="#">{{ . }}</a>
+                    {{ range $key, $value :=  .Requests.Requests }}
+                      <a class="dropdown-item" id="{{ $key }}" href="#">{{ $key }}</a>
 		            {{ end }}
                     </div>
 	              {{ end }}

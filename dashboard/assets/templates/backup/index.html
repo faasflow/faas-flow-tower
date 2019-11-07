@@ -27,7 +27,7 @@
                                         <a class="dropdown-item" href="#">All Requests</a>
                                         <div class="dropdown-divider"></div>
                                         {{range .Functions}}
-					<a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}" data-toggle="tooltip" title="Click to view {{.Name}} monitoring information">{{.Name}}</a>
+					                        <a class="dropdown-item" href="/function/faas-flow-dashboard?flow={{ .Name }}" data-toggle="tooltip" title="Click to view {{.Name}} monitoring information">{{.Name}}</a>
                                         {{ end }}
                                 </div>
                         </li>
@@ -49,7 +49,7 @@
 
                 {{range .Functions}}
                 <li>
-			<a href="#" name="function-switch" id="{{.Name}}" data-toggle="tooltip" title="Click to see {{.Name}} details">{{.Name}}</a>
+			        <a href="#" name="function-switch" id="{{.Name}}" data-toggle="tooltip" title="Click to see {{.Name}} details">{{.Name}}</a>
                 </li>
                 {{ end }}
 

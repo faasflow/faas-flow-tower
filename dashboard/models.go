@@ -36,7 +36,7 @@ type FlowDesc struct {
 type FlowRequests struct {
 	Flow             string
 	TracingEnabled   bool
-	Requests         map[string]string
+	Requests         map[string]*RequestTrace
 	CurrentRequestID string
 }
 
@@ -50,6 +50,7 @@ type NodeTrace struct {
 // RequestTrace object to retrieve and response traces details
 type RequestTrace struct {
 	RequestID  string                `json:"request-id"`
+	TraceId    string                `json:"trace-id"`
 	NodeTraces map[string]*NodeTrace `json:"traces"`
 	StartTime  int                   `json:"start-time"`
 	Duration   int                   `json:"duration"`
