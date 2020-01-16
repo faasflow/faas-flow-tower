@@ -4,3 +4,4 @@ environment:
   basic_auth: true
   secret_mount_path: "/var/openfaas/secrets"
   trace_url: "http://jaegertracing:16686/"
+  # trace_server: "faas-flow-infra.jaegertracing:16686" # use this for kubernets
