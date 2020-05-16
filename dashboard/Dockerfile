@@ -4,7 +4,7 @@ WORKDIR /go/src/github.com/s8sg/faas-flow-tower/dashboard
 
 COPY server.go .
 COPY models.go .
-COPY views.go .
+COPY service.go .
 COPY controller.go .
 
 # Run a gofmt and exclude all vendored code.
@@ -31,6 +31,7 @@ ENV https_proxy     ""
 
 COPY --from=build /go/src/github.com/s8sg/faas-flow-tower/dashboard/handler  .
 COPY assets     assets
+COPY views      views
 
 RUN chown -R app /home/app
 

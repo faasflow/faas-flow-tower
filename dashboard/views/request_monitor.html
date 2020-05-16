@@ -1,12 +1,8 @@
 {{ define "request-monitor" }}
 
 {{ if .Requests.TracingEnabled }}
-<!-- Page level plugins -->
-<script src="/function/faas-flow-dashboard/static/vendor/chart.js/Chart.min.js"></script>
 
-<!-- Page level custom scripts -->
-<script src="/function/faas-flow-dashboard/static/js/demo/chart-area-demo.js"></script>
-<script src="/function/faas-flow-dashboard/static/js/demo/chart-pie-demo.js"></script>
+<script type="text/javascript" src="/function/faas-flow-dashboard/static/js/main.js"></script>
 
 <!-- google charts -->
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>

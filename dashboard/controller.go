@@ -3,154 +3,387 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
+	"strings"
 )
 
-// listFlowFunctions request to list-flow-function to get flow-function list
-func listFlowFunctions() ([]*Function, error) {
-	var err error
+// HtmlObject object to render web page
+type HtmlObject struct {
+	PublicURL string
+	Functions []*Function
 
-	c := http.Client{}
+	LocationDepths []*Location
 
-	request, _ := http.NewRequest(http.MethodGet, gatewayUrl+"function/list-flow-functions", nil)
-	response, err := c.Do(request)
+	CurrentLocation *Location
 
-	if err == nil {
+	InnerHtml string
 
-		if response.Body != nil {
-			defer response.Body.Close()
-			bodyBytes, bErr := ioutil.ReadAll(response.Body)
-			if bErr != nil {
-				return nil, fmt.Errorf("failed to get function list, %v", bErr)
-			}
-
-			functions := []*Function{}
-			mErr := json.Unmarshal(bodyBytes, &functions)
-			if mErr != nil {
-				return nil, fmt.Errorf("failed to get function list, %v", mErr)
-			}
-
-			return functions, nil
-		}
-		return make([]*Function, 0), nil
-	}
-
-	return nil, fmt.Errorf("failed to get function list, %v", err)
+	DashBoard *DashboardSpec
+	Flow      *FlowDesc
+	Requests  *FlowRequests
+	Traces    *RequestTrace
 }
 
-// getDot request to dot-generator for the dag dot graph
-func getDot(function string) (string, error) {
-	var err error
-
-	c := http.Client{}
-
-	request, _ := http.NewRequest(http.MethodGet, gatewayUrl+"function/dot-generator?function="+function, nil)
-	response, err := c.Do(request)
-	if err == nil {
-
-		if response.Body != nil {
-			defer response.Body.Close()
-			bodyBytes, bErr := ioutil.ReadAll(response.Body)
-			if bErr != nil {
-				return "", fmt.Errorf("failed to get dag, %v", bErr)
-			}
-			return string(bodyBytes), nil
-		}
-		return "", fmt.Errorf("failed to get dag, empty reply")
-	}
-	return "", fmt.Errorf("failed to get dag, %v", err)
+// Message API request query
+type Message struct {
+	FlowName string `json:"function"`
+	TraceID  string `json:"trace-id"`
 }
 
-// listFlowRequests request to metrics function to get list of request for a flow function
-func listFlowRequests(flow string) (map[string]string, error) {
-	var err error
+// dashboardPageHandler handle dashboard view
+func dashboardPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Serving request for dashboard view")
 
-	c := http.Client{}
-	url := gatewayUrl + "function/metrics?method=list&function=" + flow
-	request, _ := http.NewRequest(http.MethodGet, url, nil)
-
-	response, err := c.Do(request)
-
-	if err == nil {
-
-		if response.Body != nil {
-			defer response.Body.Close()
-			bodyBytes, bErr := ioutil.ReadAll(response.Body)
-			if bErr != nil {
-				return nil, fmt.Errorf("failed to get request list, %v", bErr)
-			}
-
-			var requests map[string]string
-			mErr := json.Unmarshal(bodyBytes, &requests)
-			if mErr != nil {
-				return nil, fmt.Errorf("failed to get request list, %v", mErr)
-			}
-
-			return requests, nil
-		}
-	}
-
-	return nil, fmt.Errorf("failed to get requests list, %v", err)
-}
-
-// buildFlowDesc get a flow details
-func buildFlowDesc(functions []*Function, flowName string) (*FlowDesc, error) {
-
-	var functionObj *Function
-	for _, functionObj = range functions {
-		if functionObj.Name == flowName {
-			break
-		}
-	}
-
-	description := functionObj.Annotations["faas-flow-desc"]
-
-	dot, dErr := getDot(flowName)
-	if dErr != nil {
-		return nil, fmt.Errorf("failed to get dot, %v", dErr)
-	}
-
-	flowDesc := &FlowDesc{
-		Name:            functionObj.Name,
-		Image:           functionObj.Image,
-		Description:     description,
-		InvocationCount: functionObj.InvocationCount,
-		Replicas:        functionObj.Replicas,
-		Labels:          functionObj.Labels,
-		Annotations:     functionObj.Annotations,
-		Dot:             dot,
-	}
-
-	return flowDesc, nil
-}
-
-// listRequestTraces request to metrics function to get list of traces for a request traceID
-func listRequestTraces(requestTraceId string) (*RequestTrace, error) {
-	var err error
-
-	c := http.Client{}
-	url := gatewayUrl + "function/metrics?method=traces&trace=" + requestTraceId
-	request, _ := http.NewRequest(http.MethodGet, url, nil)
-
-	response, err := c.Do(request)
+	functions, err := listFlowFunctions()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get traces, %v", err)
+		log.Printf("failed to get functions, error: %v", err)
+		functions = make([]*Function, 0)
 	}
 
-	defer response.Body.Close()
-	bodyBytes, err := ioutil.ReadAll(response.Body)
+	dashboardSpec := &DashboardSpec{
+		TotalFlows:     len(functions),
+		ReadyFlows:     len(functions),
+		TotalRequests:  0,
+		ActiveRequests: 0,
+	}
+
+	htmlObj := HtmlObject{
+		PublicURL: publicUri,
+		Functions: functions,
+
+		InnerHtml: "dashboard",
+
+		DashBoard: dashboardSpec,
+	}
+
+	err = gen.ExecuteTemplate(w, "index", htmlObj)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get traces, %v", err)
+		http.Error(w, fmt.Sprintf("failed to generate requested page, error: %v", err), http.StatusInternalServerError)
 	}
 
-	trace := &RequestTrace{}
-	err = json.Unmarshal(bodyBytes, trace)
+}
+
+// flowInfoPageHandler handle flow info page view
+func flowInfoPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Serving request for dashboard view")
+
+	flowName := r.URL.Query().Get("flow-name")
+
+	functions, err := listFlowFunctions()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get traces, %v", err)
+		log.Printf("failed to get functions, error: %v", err)
+		functions = make([]*Function, 0)
 	}
 
-	trace.TraceId = requestTraceId
+	flowDesc, err := buildFlowDesc(functions, flowName)
+	if err != nil {
+		log.Printf("failed to get function desc, error: %v", err)
+	}
 
-	return trace, nil
+	htmlObj := HtmlObject{
+		PublicURL: publicUri,
+		Functions: functions,
+
+		CurrentLocation: &Location{
+			Name: "Flow : " + flowName + "",
+			Link: "/function/faas-flow-dashboard/flow/info?flow-name=" + flowName,
+		},
+
+		InnerHtml: "flow-info",
+
+		Flow: flowDesc,
+	}
+
+	err = gen.ExecuteTemplate(w, "index", htmlObj)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to generate requested page, error: %v", err), http.StatusInternalServerError)
+	}
+}
+
+// flowRequestsPageHandler handle tracing view
+func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Serving request for request list view")
+
+	flowName := r.URL.Query().Get("flow-name")
+
+	functions, err := listFlowFunctions()
+	if err != nil {
+		log.Printf("failed to get functions, error: %v", err)
+		functions = make([]*Function, 0)
+	}
+
+	tracingEnabled := false
+	requests, err := listFlowRequests(flowName)
+	if err != nil {
+		log.Printf("failed to get requests, error: %v", err)
+		requests = make(map[string]string)
+	}
+
+	requestsDetails := make(map[string]*RequestTrace)
+
+	for request, traceId := range requests {
+		requestsDetails[request], err = listRequestTraces(traceId)
+		if err != nil {
+			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
+				request, traceId, err)
+			requestsDetails[request] = &RequestTrace{
+				TraceId: traceId,
+			}
+		}
+		tracingEnabled = true
+	}
+
+	flowRequests := &FlowRequests{
+		TracingEnabled: tracingEnabled,
+		Flow:           flowName,
+		Requests:       requestsDetails,
+	}
+
+	locationDepths := []*Location{
+		&Location{
+			Name: "Flow : " + flowName + "",
+			Link: "/function/faas-flow-dashboard/flow/info?flow-name=" + flowName,
+		},
+	}
+
+	htmlObj := HtmlObject{
+		PublicURL: publicUri,
+		Functions: functions,
+
+		LocationDepths: locationDepths,
+
+		CurrentLocation: &Location{
+			Name: "Requests",
+			Link: "/function/faas-flow-dashboard/flow/requests?flow-name=" + flowName,
+		},
+
+		Requests: flowRequests,
+
+		InnerHtml: "requests",
+	}
+
+	err = gen.ExecuteTemplate(w, "index", htmlObj)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to generate requested page, error: %v", err), http.StatusInternalServerError)
+	}
+}
+
+// flowRequestMonitorPageHandler handle tracing view
+func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Serving request for request monitor view")
+
+	flowName := r.URL.Query().Get("flow-name")
+
+	functions, err := listFlowFunctions()
+	if err != nil {
+		log.Printf("failed to get functions, error: %v", err)
+		functions = make([]*Function, 0)
+	}
+
+	tracingEnabled := false
+	requests, err := listFlowRequests(flowName)
+	if err != nil {
+		log.Printf("failed to get requests, error: %v", err)
+		requests = make(map[string]string)
+	}
+
+	requestsDetails := make(map[string]*RequestTrace)
+	currentRequestID := ""
+
+	for request, traceId := range requests {
+		requestsDetails[request], err = listRequestTraces(traceId)
+		if err != nil {
+			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
+				request, traceId, err)
+			requestsDetails[request] = &RequestTrace{
+				TraceId: traceId,
+			}
+		}
+
+		if len(currentRequestID) == 0 {
+			currentRequestID = request
+		}
+		tracingEnabled = true
+	}
+
+	flowRequests := &FlowRequests{
+		TracingEnabled:   tracingEnabled,
+		Flow:             flowName,
+		Requests:         requestsDetails,
+		CurrentRequestID: currentRequestID,
+	}
+
+	locationDepths := []*Location{
+		&Location{
+			Name: "Flow : " + flowName + "",
+			Link: "/function/faas-flow-dashboard/flow/info?flow-name=" + flowName,
+		},
+		&Location{
+			Name: "Requests",
+			Link: "/function/faas-flow-dashboard/flow/requests?flow-name=" + flowName,
+		},
+	}
+
+	htmlObj := HtmlObject{
+		PublicURL: publicUri,
+		Functions: functions,
+
+		LocationDepths: locationDepths,
+
+		CurrentLocation: &Location{
+			Name: "requests-choice",
+		},
+
+		Requests: flowRequests,
+
+		Traces: &RequestTrace{
+			RequestID: currentRequestID,
+
+			// TODO: initialize
+			Duration: 0,
+			Status:   "unknown",
+		},
+
+		InnerHtml: "request-monitor",
+	}
+
+	err = gen.ExecuteTemplate(w, "index", htmlObj)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to generate requested page, error: %v", err), http.StatusInternalServerError)
+	}
+}
+
+// API
+
+// listFlows handle api request to list flow function
+func listFlowsHandler(w http.ResponseWriter, r *http.Request) {
+
+	accept := r.Header.Get("accept")
+
+	// If API request
+	if !strings.Contains(accept, "json") {
+		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", jsonType)
+	functions, err := listFlowFunctions()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to handle list request, error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	data, _ := json.MarshalIndent(functions, "", "    ")
+	w.Write(data)
+}
+
+// flowDesc request handler for a flow function
+func flowDescHandler(w http.ResponseWriter, r *http.Request) {
+
+	accept := r.Header.Get("accept")
+
+	// If API request
+	if !strings.Contains(accept, "json") {
+		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
+	}
+
+	if r.Body == nil {
+		http.Error(w, "", 500)
+		return
+	}
+
+	var msg Message
+	err := json.NewDecoder(r.Body).Decode(&msg)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	flowName := msg.FlowName
+
+	functions, err := listFlowFunctions()
+	if err != nil {
+		log.Printf("failed to get functions, error: %v", err)
+		functions = make([]*Function, 0)
+	}
+
+	flowDesc, err := buildFlowDesc(functions, flowName)
+	if err != nil {
+		http.Error(w, "failed to handle request, "+err.Error(), 500)
+		return
+	}
+
+	data, _ := json.MarshalIndent(flowDesc, "", "    ")
+	w.Header().Set("Content-Type", jsonType)
+	w.Write(data)
+}
+
+// listFlowRequestsApiHandler list the requests for a flow function
+func listFlowRequestsHandler(w http.ResponseWriter, r *http.Request) {
+
+	accept := r.Header.Get("accept")
+
+	// If API request
+	if !strings.Contains(accept, "json") {
+		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
+	}
+
+	if r.Body == nil {
+		http.Error(w, "", 500)
+		return
+	}
+
+	var msg Message
+	err := json.NewDecoder(r.Body).Decode(&msg)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	flowFunction := msg.FlowName
+
+	w.Header().Set("Content-Type", jsonType)
+	requests, err := listFlowRequests(flowFunction)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	data, _ := json.MarshalIndent(requests, "", "    ")
+	w.Write(data)
+	return
+}
+
+// requestTracesApiHandler request handler for traces of a request
+func requestTracesHandler(w http.ResponseWriter, r *http.Request) {
+
+	accept := r.Header.Get("accept")
+
+	// If API request
+	if !strings.Contains(accept, "json") {
+		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
+	}
+
+	if r.Body == nil {
+		http.Error(w, "", 500)
+		return
+	}
+
+	var msg Message
+	err := json.NewDecoder(r.Body).Decode(&msg)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	traceID := msg.TraceID
+
+	w.Header().Set("Content-Type", jsonType)
+	trace, err := listRequestTraces(traceID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
+		return
+	}
+	data, _ := json.MarshalIndent(trace, "", "    ")
+	w.Write(data)
+	return
 }

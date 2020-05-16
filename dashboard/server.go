@@ -28,7 +28,7 @@ func initialize() error {
 		publicUri = "/function/faas-flow-dashboard"
 	}
 	gatewayUrl = os.Getenv("gateway_url")
-	gen = pageGen.Must(pageGen.ParseGlob("assets/templates/*.html"))
+	gen = pageGen.Must(pageGen.ParseGlob("views/*.html"))
 	return nil
 }
 
