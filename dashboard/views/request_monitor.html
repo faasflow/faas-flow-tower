@@ -70,13 +70,15 @@
     </div>
 </div>
 
-<script>
-    {{ if .Requests.TracingEnabled }}
-        loadTraceContent({{ .Traces.TraceId }});
-        setInterval(function(){
+{{ if .Requests.TracingEnabled }}
+    <script>
+        window.onload = function () {
             loadTraceContent({{ .Traces.TraceId }});
-        }, 3000);
-    {{ end }}
-</script>
+            setInterval(function () {
+                loadTraceContent({{ .Traces.TraceId }});
+            }, 3000);
+        };
+    </script>
+{{ end }}
 
 {{ end }}
