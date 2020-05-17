@@ -7,7 +7,7 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:3.0.0
+    image: s8sg/faas-flow-dashboard:3.0.1
     environment_file:
       - conf.yml
     labels:
