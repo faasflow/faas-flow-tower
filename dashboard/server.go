@@ -80,7 +80,7 @@ func main() {
 	http.HandleFunc("/api/flow/list", listFlowsHandler)
 	http.HandleFunc("/api/flow/info", flowDescHandler)
 	http.HandleFunc("/api/flow/requests", listFlowRequestsHandler)
-	http.HandleFunc("/api/flow/request/traces", listFlowRequestsHandler)
+	http.HandleFunc("/api/flow/request/traces", requestTracesHandler)
 
 	log.Fatal(s.ListenAndServe())
 }

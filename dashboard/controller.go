@@ -120,14 +120,14 @@ func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
 		requests = make(map[string]string)
 	}
 
-	requestsDetails := make(map[string]*RequestTrace)
+	requestsList := make(map[string]*RequestTrace)
 
 	for request, traceId := range requests {
-		requestsDetails[request], err = listRequestTraces(traceId)
+		requestsList[request], err = listRequestTraces(traceId)
 		if err != nil {
 			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
 				request, traceId, err)
-			requestsDetails[request] = &RequestTrace{
+			requestsList[request] = &RequestTrace{
 				TraceId: traceId,
 			}
 		}
@@ -137,7 +137,7 @@ func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
 	flowRequests := &FlowRequests{
 		TracingEnabled: tracingEnabled,
 		Flow:           flowName,
-		Requests:       requestsDetails,
+		Requests:       requestsList,
 	}
 
 	locationDepths := []*Location{
@@ -174,6 +174,7 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Serving request for request monitor view")
 
 	flowName := r.URL.Query().Get("flow-name")
+	currentRequestID := r.URL.Query().Get("request")
 
 	functions, err := listFlowFunctions()
 	if err != nil {
@@ -188,29 +189,27 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 		requests = make(map[string]string)
 	}
 
-	requestsDetails := make(map[string]*RequestTrace)
-	currentRequestID := ""
+	requestsList := make(map[string]*RequestTrace)
 
 	for request, traceId := range requests {
-		requestsDetails[request], err = listRequestTraces(traceId)
+		requestsList[request], err = listRequestTraces(traceId)
 		if err != nil {
 			log.Printf("failed to get request traces for request %s, traceId %s, error: %v",
 				request, traceId, err)
-			requestsDetails[request] = &RequestTrace{
+			requestsList[request] = &RequestTrace{
 				TraceId: traceId,
 			}
 		}
-
-		if len(currentRequestID) == 0 {
+		tracingEnabled = true
+		if currentRequestID == "" {
 			currentRequestID = request
 		}
-		tracingEnabled = true
 	}
 
 	flowRequests := &FlowRequests{
 		TracingEnabled:   tracingEnabled,
 		Flow:             flowName,
-		Requests:         requestsDetails,
+		Requests:         requestsList,
 		CurrentRequestID: currentRequestID,
 	}
 
@@ -237,13 +236,7 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 
 		Requests: flowRequests,
 
-		Traces: &RequestTrace{
-			RequestID: currentRequestID,
-
-			// TODO: initialize
-			Duration: 0,
-			Status:   "unknown",
-		},
+		Traces: requestsList[currentRequestID],
 
 		InnerHtml: "request-monitor",
 	}

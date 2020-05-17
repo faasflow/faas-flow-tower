@@ -1,9 +1,6 @@
 {{ define "request-monitor" }}
 
 {{ if .Requests.TracingEnabled }}
-
-<script type="text/javascript" src="/function/faas-flow-dashboard/static/js/main.js"></script>
-
 <!-- google charts -->
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 {{ end }}
@@ -12,7 +9,7 @@
 <div class="row">
     <div class="card border border-grey shadow shadow-sm h-100 py-2" style="width: 70vw;">
         {{ if .Requests.TracingEnabled }}
-		<div id="canvas" style="width: 100%; height: 30vw;">
+		<div id="canvas" style="width: 100%; height: 30vw; overflow: hidden;" align="center" class="rounded card-img-top">
             <!-- Traces goes here -->
         </div>
         <div class="card-body bg-light">
@@ -72,5 +69,14 @@
         {{ end }}
     </div>
 </div>
+
+<script>
+    {{ if .Requests.TracingEnabled }}
+        loadTraceContent({{ .Traces.TraceId }});
+        setInterval(function(){
+            loadTraceContent({{ .Traces.TraceId }});
+        }, 3000);
+    {{ end }}
+</script>
 
 {{ end }}

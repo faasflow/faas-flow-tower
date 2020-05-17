@@ -184,6 +184,7 @@
                   </a>
                   {{ end }}
 	              {{ if .Requests.TracingEnabled }}
+                    {{ $flowName := .Requests.Flow }}
                     <a class="btn btn-secondary dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
                       <i class="fa fa-angle-right"></i>
                       <span id="selected-request">
@@ -192,7 +193,7 @@
                     </a>
                     <div class="dropdown-menu">
                     {{ range $key, $value :=  .Requests.Requests }}
-                      <a class="dropdown-item" id="{{ $key }}" href="#">{{ $key }}</a>
+                      <a class="dropdown-item" id="{{ $key }}" href="/function/faas-flow-dashboard/flow/request/monitor?flow-name={{ $flowName }}&request={{ $key }}">{{ $key }}</a>
 		            {{ end }}
                     </div>
 	              {{ end }}
