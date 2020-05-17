@@ -72,12 +72,13 @@
 
 {{ if .Requests.TracingEnabled }}
     <script>
-        window.onload = function () {
+        function loadTraces () {
             loadTraceContent({{ .Traces.TraceId }});
             setInterval(function () {
                 loadTraceContent({{ .Traces.TraceId }});
             }, 3000);
         };
+        window.addEventListener("load", loadTraces, false);
     </script>
 {{ end }}
 
