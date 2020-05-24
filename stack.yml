@@ -1,6 +1,6 @@
 provider:
   name: openfaas
-  gateway: http://127.0.0.1:8080
+  gateway: http://127.0.0.1:31112
 
 functions:
   # dashboard
@@ -14,7 +14,7 @@ functions:
       com.openfaas.scale.zero: "false"
 
   # list flow functions deployed in openfaas
-  list-flow-functions:      
+  list-flow-functions:
     lang: go
     handler: ./list-flow-functions
     image: s8sg/list-flow-functions:1.0.0
@@ -24,8 +24,7 @@ functions:
     environment_file:
       - conf.yml
     secrets:
-      - basic-auth-user          # OpenFaaS auth credential
-      - basic-auth-password
+      - basic-auth
     labels:
       com.openfaas.scale.zero: "false"
 
