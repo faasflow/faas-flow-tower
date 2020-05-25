@@ -33,18 +33,8 @@ kubernetes and swarm deployment resources for faas-flow dependencies.
 
 ### Configure
 
-Configuration are defined in `conf.yml`. Based on your deployment you may need
-to update the configuration before you use the deployment script.
-
-For components deployed in **kubernets**:
-
-```yaml
-environment:
-  basic_auth: true
-  gateway_url: "http://gateway.openfaas:8080/"
-  secret_mount_path: "/var/openfaas/secrets"
-  trace_url: "http://jaeger.faasflow:16686/"
-```
+Configurations are defined in [conf.yml](conf.yml). Based on your deployment you
+may need to update the configuration before you use the deployment script.
 
 ### Deploy Functions
 
