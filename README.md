@@ -68,4 +68,4 @@ labels:
 
 Faasflow fetches the monitoring information from jaeger trace server. To enable
 tracing for flow function add environment `enable_tracing: true` and set trace
-server url `trace_server: "jaeger.openfaas:5775"`.
+server url `trace_server: "jaeger-agent.openfaas:5775"`.
