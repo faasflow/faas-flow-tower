@@ -3,4 +3,4 @@ environment:
   gateway_public_uri: "http://localhost:31112"
   gateway_url: "http://gateway.openfaas:8080/"
   secret_mount_path: "/var/openfaas/secrets"
-  trace_url: "http://jaeger-query.faasflow:31668/"
+  trace_url: "http://jaeger-query.faasflow:16686/"
