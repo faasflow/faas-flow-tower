@@ -1,15 +1,17 @@
 # faas-flow-tower
 
-A monitoring function stack to visualize
-[faas-flow](https://github.com/s8sg/faas-flow) functions and requests in
-realtime.
-
-Dashboard provide details for each faas-flow functions incuding graphical
-representation of dags based on function definition
+A monitoring stack for [faas-flow](https://github.com/s8sg/faas-flow) with greater visibity of flows
 ![alt dashboard](doc/dashboard.png).
 
-Tower provides realtime timeline for requests for individual nodes of each
-faas-flow functions ![alt dashboard](doc/monitoring.png)
+Dashboard provide details for each faas-flow functions incuding graphical
+representation of dags based on function definition  
+
+![alt dashboard](doc/flow-details.png).
+
+Request can be monitored realtime with timeline for requests for individual nodes of each  
+faas-flow functions 
+
+![alt dashboard](doc/monitoring.png)
 
 ## Deploy OpenFaaS
 
@@ -49,8 +51,9 @@ You might have to change the `localhost:31112` to your openfaas Gateway URL.
 ## Access the Dashboard
 
 Once deployed the dashboard will be available as a openfaas function at
-[localhost:8080/function/faas-flow-dashboard](localhost:8080/function/faas-flow-dashboard).
-Change the `localhost:8080` to your openfaas Gateway URL.
+[localhost:31112/function/faas-flow-dashboard](localhost:31112/function/faas-flow-dashboard).   
+    
+Change the `localhost:31112` to your openfaas Gateway URL.
 
 ## Make your flow visible
 
@@ -67,5 +70,9 @@ labels:
 ## Monitoring
 
 Faasflow fetches the monitoring information from jaeger trace server. To enable
-tracing for flow function add environment `enable_tracing: true` and set trace
-server url `trace_server: "jaeger-agent.openfaas:5775"`.
+tracing for flow function add environment, set     
+```yaml
+enable_tracing: true        
+trace_server: "jaeger-agent.openfaas:5775"
+```
+
