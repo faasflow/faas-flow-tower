@@ -41,10 +41,20 @@ func dashboardPageHandler(w http.ResponseWriter, r *http.Request) {
 		functions = make([]*Function, 0)
 	}
 
+	totalRequests := 0
+	for _, function := range functions {
+		requests, err := listFlowRequests(function.Name)
+		if err != nil {
+			log.Printf("failed to get requests, error: %v", err)
+			continue
+		}
+		totalRequests = totalRequests + len(requests)
+	}
+
 	dashboardSpec := &DashboardSpec{
 		TotalFlows:     len(functions),
 		ReadyFlows:     len(functions),
-		TotalRequests:  0,
+		TotalRequests:  totalRequests,
 		ActiveRequests: 0,
 	}
 
@@ -79,6 +89,14 @@ func flowInfoPageHandler(w http.ResponseWriter, r *http.Request) {
 	flowDesc, err := buildFlowDesc(functions, flowName)
 	if err != nil {
 		log.Printf("failed to get function desc, error: %v", err)
+	}
+
+	requests, err := listFlowRequests(flowName)
+	if err != nil {
+		log.Printf("failed to get requests, error: %v", err)
+		flowDesc.InvocationCount = 0
+	} else {
+		flowDesc.InvocationCount = float64(len(requests))
 	}
 
 	htmlObj := HtmlObject{
