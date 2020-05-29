@@ -7,9 +7,14 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:3.0.2
+    image: s8sg/faas-flow-dashboard:3.0.3
+    environment:
+      write_debug: true
+      combine_output: false
     environment_file:
       - conf.yml
+    secrets:
+      - basic-auth
     labels:
       com.openfaas.scale.zero: "false"
 
@@ -17,9 +22,9 @@ functions:
   list-flow-functions:
     lang: go
     handler: ./list-flow-functions
-    image: s8sg/list-flow-functions:1.0.0
+    image: s8sg/list-flow-functions:1.0.1
     environment:
-      read_debug: true
+      write_debug: true
       combine_output: false
     environment_file:
       - conf.yml

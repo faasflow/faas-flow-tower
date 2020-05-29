@@ -77,6 +77,32 @@ function loadTraceContent(traceId) {
     xmlHttp.send(data);
 };
 
+// delete the flow function
+function deleteFlow(flowName) {
+    let url = getServer();
+    url = url.concat("/function/faas-flow-dashboard/api/flow/delete");
+
+    let reqData = {};
+    reqData["function"] = flowName;
+    let data = JSON.stringify(reqData);
+
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status != 200) {
+            alert("Failed to delete flow: " + flowName);
+            return;
+        }
+        if (this.readyState == 4 && this.status == 200) {
+            alert("Deleted flow: " + flowName);
+            return;
+        }
+    };
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader('accept', "application/json");
+    xmlHttp.setRequestHeader("Content-Type", "application/json");
+    xmlHttp.send(data);
+};
+
 // format function duration in sec
 function formatDuration(micros) {
     let seconds = (micros / 1000000);
@@ -143,6 +169,7 @@ function updateTraceContent(jsonObject) {
 
     let duration = jsonObject["duration"];
     let status = jsonObject["status"];
+    let start_time = jsonObject["start-time"];
 
     // remove welcome body if present
     welcome = d3.select("#welcome")
@@ -160,6 +187,7 @@ function updateTraceContent(jsonObject) {
 
     d3.select("#exec-duration").text("Duration: " + formatDuration(duration));
     d3.select("exec-status").text("Status: " + status);
+    d3.select("start-time").text("Start Time: " + formatTime(start_time));
 };
 
 
