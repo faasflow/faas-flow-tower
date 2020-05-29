@@ -6,6 +6,7 @@ COPY server.go .
 COPY models.go .
 COPY service.go .
 COPY controller.go .
+ADD vendor vendor
 
 # Run a gofmt and exclude all vendored code.
 RUN test -z "$(gofmt -l $(find . -type f -name '*.go' -not -path "./vendor/*"))" \

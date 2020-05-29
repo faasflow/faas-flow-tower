@@ -1,11 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/openfaas/openfaas-cloud/sdk"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
+
+type DeleteFunctionRequest struct {
+	FunctionName string `json:"functionName"`
+}
 
 // listFlowFunctions request to list-flow-function to get flow-function list
 func listFlowFunctions() ([]*Function, error) {
@@ -37,6 +44,46 @@ func listFlowFunctions() ([]*Function, error) {
 	}
 
 	return nil, fmt.Errorf("failed to get function list, %v", err)
+}
+
+// deleteFlowFunction deletes a flow function
+func deleteFlowFunction(functionName string) error {
+	var err error
+
+	delReq := DeleteFunctionRequest{FunctionName: functionName}
+	reqBytes, _ := json.Marshal(&delReq)
+	reader := bytes.NewReader(reqBytes)
+
+	c := http.Client{
+		Timeout: time.Second * 3,
+	}
+
+	httpReq, err := http.NewRequest(http.MethodDelete, gatewayUrl+"system/functions", reader)
+	if err != nil {
+		return fmt.Errorf("failed to build request %v", err)
+	}
+
+	addAuthErr := sdk.AddBasicAuth(httpReq)
+	if addAuthErr != nil {
+		return fmt.Errorf("basic auth error %s", addAuthErr)
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	response, err := c.Do(httpReq)
+	if err != nil {
+		return fmt.Errorf("unable to query functions, error %v", err)
+	}
+	defer response.Body.Close()
+
+	// Read Response Body
+	respBody, _ := ioutil.ReadAll(response.Body)
+
+	if response.StatusCode != http.StatusAccepted {
+		return fmt.Errorf("unable to query functions, status: %d, body: %v", response.StatusCode, respBody)
+	}
+
+	return nil
 }
 
 // getDot request to dot-generator for the dag dot graph

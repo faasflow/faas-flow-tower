@@ -23,7 +23,7 @@ func Handle(req []byte) string {
 
 	addAuthErr := sdk.AddBasicAuth(httpReq)
 	if addAuthErr != nil {
-		log.Printf("Basic auth error %s", addAuthErr)
+		log.Fatalf("Basic auth error %s", addAuthErr)
 	}
 
 	response, err := c.Do(httpReq)

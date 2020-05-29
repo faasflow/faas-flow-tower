@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 // HtmlObject object to render web page
@@ -270,14 +269,6 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 // listFlows handle api request to list flow function
 func listFlowsHandler(w http.ResponseWriter, r *http.Request) {
 
-	accept := r.Header.Get("accept")
-
-	// If API request
-	if !strings.Contains(accept, "json") {
-		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
-		return
-	}
-
 	w.Header().Set("Content-Type", jsonType)
 	functions, err := listFlowFunctions()
 	if err != nil {
@@ -288,18 +279,39 @@ func listFlowsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// deleteFlowsHandler handle api request to delete flow function
+func deleteFlowsHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Body == nil {
+		http.Error(w, "invalid request, no content", 500)
+		return
+	}
+
+	var msg Message
+	err := json.NewDecoder(r.Body).Decode(&msg)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	flowName := msg.FlowName
+	log.Printf("deleting flow %s", flowName)
+
+	err = deleteFlowFunction(flowName)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	w.WriteHeader(200)
+	return
+}
+
 // flowDesc request handler for a flow function
 func flowDescHandler(w http.ResponseWriter, r *http.Request) {
 
-	accept := r.Header.Get("accept")
-
-	// If API request
-	if !strings.Contains(accept, "json") {
-		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
-	}
-
 	if r.Body == nil {
-		http.Error(w, "", 500)
+		http.Error(w, "invalid request, no content", 500)
 		return
 	}
 
@@ -332,15 +344,8 @@ func flowDescHandler(w http.ResponseWriter, r *http.Request) {
 // listFlowRequestsApiHandler list the requests for a flow function
 func listFlowRequestsHandler(w http.ResponseWriter, r *http.Request) {
 
-	accept := r.Header.Get("accept")
-
-	// If API request
-	if !strings.Contains(accept, "json") {
-		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
-	}
-
 	if r.Body == nil {
-		http.Error(w, "", 500)
+		http.Error(w, "invalid request, no content", 500)
 		return
 	}
 
@@ -367,15 +372,8 @@ func listFlowRequestsHandler(w http.ResponseWriter, r *http.Request) {
 // requestTracesApiHandler request handler for traces of a request
 func requestTracesHandler(w http.ResponseWriter, r *http.Request) {
 
-	accept := r.Header.Get("accept")
-
-	// If API request
-	if !strings.Contains(accept, "json") {
-		http.Error(w, "failed to handle api request, must accept json", http.StatusBadRequest)
-	}
-
 	if r.Body == nil {
-		http.Error(w, "", 500)
+		http.Error(w, "invalid request, no content", 500)
 		return
 	}
 

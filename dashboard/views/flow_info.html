@@ -30,7 +30,7 @@
         <i class="fa fa-search-plus"></i>
         Monitor
       </a>
-      <a id="remove" href="#" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">
+      <a id="remove" href="#" onclick="return deleteFlow('{{ .Flow.Name }}');" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">
         <i class="fa fa-trash-alt"></i>
         Remove
       </a>

@@ -78,6 +78,7 @@ func main() {
 
 	// API request
 	http.HandleFunc("/api/flow/list", listFlowsHandler)
+	http.HandleFunc("/api/flow/delete", deleteFlowsHandler)
 	http.HandleFunc("/api/flow/info", flowDescHandler)
 	http.HandleFunc("/api/flow/requests", listFlowRequestsHandler)
 	http.HandleFunc("/api/flow/request/traces", requestTracesHandler)
