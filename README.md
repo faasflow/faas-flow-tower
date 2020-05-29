@@ -1,17 +1,19 @@
 # faas-flow-tower
 
-A monitoring stack for [faas-flow](https://github.com/s8sg/faas-flow) with greater visibity of flows
-![alt dashboard](doc/dashboard.png).
+A monitoring stack for [faas-flow](https://github.com/s8sg/faas-flow) with greater visibity of flows  
 
-Dashboard provide details for each faas-flow functions incuding graphical
+![alt dashboard](doc/dashboard.png)
+
+Dashboard provide details for each faas-flow functions incuding graphical 
 representation of dags based on function definition  
 
-![alt dashboard](doc/flow-details.png).
+![alt dashboard](doc/flow-details.png)
 
-Request can be monitored realtime with timeline for requests for individual nodes of each  
-faas-flow functions 
+Request can be monitored realtime with timeline for requests for individual 
+nodes of each faas-flow functions  
 
 ![alt dashboard](doc/monitoring.png)
+
 
 ## Deploy OpenFaaS
 
