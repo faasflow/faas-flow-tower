@@ -3,6 +3,71 @@
 <!-- Content Row -->
 <div class="row">
 
+  <!-- Modal DELETE -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Remove flow</h5>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to remove {{ .Flow.Name }}?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="button" onclick="return deleteFlow('{{ .Flow.Name }}');" class="btn btn-danger">Ok</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal EXECUTE -->
+  <div class="modal fade bd-example-modal-lg" id="executeModal" tabindex="-1" role="dialog" aria-labelledby="executeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="executeModalLabel">Execute {{ .Flow.Name }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+               <div class="form-check form-check-inline">
+                 <input class="form-check-input" type="radio" name="request.content_type" value="text/html" id="inlineRadio1" checked>
+                 <label class="form-check-label" for="inlineRadio1">Text</label>
+               </div>
+               <div class="form-check form-check-inline">
+                 <input class="form-check-input" type="radio" name="request.content_type" value="application/json" id="inlineRadio2">
+                 <label class="form-check-label" for="inlineRadio2">Json</label>
+               </div>
+            </div>
+            <div class="form-group">
+              <label for="request.body" rows="1" class="col-form-label">Body:</label>
+              <textarea class="form-control" rows="6" id="request.body"></textarea>
+            </div>
+            <div class="form-group">
+              <button type="button" onclick="return executeFlow('{{ .Flow.Name }}');" class="btn btn-primary">Execute</button>
+            </div>
+          </form>
+          <form>
+            <div class="form-group">
+              <label rows="1" for="response.status" class="col-form-label">Status:</label>
+              <textarea readonly rows="1" class="form-control" id="response.status"></textarea>
+
+              <label rows="1" for="response.id" class="col-form-label">Request Id:</label>
+              <textarea readonly rows="1" class="form-control" id="response.id"></textarea>
+
+              <label rows="1" for="response.body" class="col-form-label">Response:</label>
+              <textarea readonly rows="6" class="form-control" id="response.body"></textarea>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card border border-grey shadow shadow-sm" style="width: 70vw;">
     <div id="graph" style="width: 69.85vw; height: 50vh; overflow: hidden;" align="center" class="rounded card-img-top">
       <!-- DAG goes here -->
@@ -18,7 +83,7 @@
       <li class="list-group-item" id="replica-count">Replicas: {{ .Flow.Replicas }}</li>
     </ul>
     <div class="card-body">
-      <a id="execute" href="#" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">
+      <a id="execute" href="#" data-toggle="modal" data-target="#executeModal" class="card-link btn btn-success" data-toggle="tooltip" title="Click to execute the flow">
         <i class="fa fa-play-circle"></i>
         Execute
       </a>
@@ -30,7 +95,7 @@
         <i class="fa fa-search-plus"></i>
         Monitor
       </a>
-      <a id="remove" href="#" onclick="return deleteFlow('{{ .Flow.Name }}');" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">
+      <a id="remove" href="#" data-toggle="modal" data-target="#deleteModal" class="card-link btn btn-danger" data-toggle="tooltip" title="Click to remove the flow">
         <i class="fa fa-trash-alt"></i>
         Remove
       </a>
