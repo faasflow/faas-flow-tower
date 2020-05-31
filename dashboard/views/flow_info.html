@@ -54,13 +54,19 @@
           <form>
             <div class="form-group">
               <label rows="1" for="response.status" class="col-form-label">Status:</label>
-              <textarea readonly rows="1" class="form-control" id="response.status"></textarea>
+              <textarea readonly rows="1" class="form-control" id="response.status" style="background: transparent"></textarea>
 
               <label rows="1" for="response.id" class="col-form-label">Request Id:</label>
-              <textarea readonly rows="1" class="form-control" id="response.id"></textarea>
+              <textarea readonly rows="1" class="form-control" id="response.id" style="background: transparent"></textarea>
 
               <label rows="1" for="response.body" class="col-form-label">Response:</label>
-              <textarea readonly rows="6" class="form-control" id="response.body"></textarea>
+              <textarea readonly rows="6" class="form-control" id="response.body" style="background: transparent"></textarea>
+            </div>
+            <div class="form-group">
+              <a id="response.monitor" href="#" class="btn btn-info" data-toggle="tooltip" title="Click to monitor the request" style="visibility: hidden">
+                <i class="fa fa-play-circle"></i>
+                Monitor
+              </a>
             </div>
           </form>
         </div>
