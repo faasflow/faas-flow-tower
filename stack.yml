@@ -7,7 +7,7 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:3.0.3
+    image: s8sg/faas-flow-dashboard:3.0.4
     environment:
       write_debug: true
       combine_output: false

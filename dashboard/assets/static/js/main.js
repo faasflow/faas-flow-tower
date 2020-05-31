@@ -77,6 +77,27 @@ function loadTraceContent(traceId) {
     xmlHttp.send(data);
 };
 
+// execute the flow function
+function executeFlow(flowName) {
+    let url = getServer();
+    url = url.concat("/function/" + flowName);
+
+    let data = document.getElementById("request.body").text;
+    let contentType = document.querySelector('input[name="request.content_type"]:checked').value;
+
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+            d3.select("#response.status").text(this.status)
+            d3.select("#response.id").text(this.getResponseHeader('X-Faas-Flow-Reqid'))
+            d3.select("#response.body").text(this.responseText)
+        }
+    };
+    xmlHttp.open("POST", url, true);
+    xmlHttp.setRequestHeader("Content-Type", contentType);
+    xmlHttp.send(data);
+}
+
 // delete the flow function
 function deleteFlow(flowName) {
     let url = getServer();
