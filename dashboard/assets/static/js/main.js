@@ -82,21 +82,31 @@ function executeFlow(flowName) {
     let url = getServer();
     url = url.concat("/function/" + flowName);
 
-    let data = document.getElementById("request.body").text;
+    let data = document.getElementById("request.body").value;
     let contentType = document.querySelector('input[name="request.content_type"]:checked').value;
 
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4) {
-            d3.select("#response.status").text(this.status)
-            d3.select("#response.id").text(this.getResponseHeader('X-Faas-Flow-Reqid'))
-            d3.select("#response.body").text(this.responseText)
+            let requestId = this.getResponseHeader('X-Faas-Flow-Reqid');
+            document.getElementById("response.status").value = "" + this.status;
+            if (requestId != null) {
+                document.getElementById("response.id").value = requestId;
+                document.getElementById("response.monitor").style.visibility = "visible";
+                document.getElementById("response.monitor").href =
+                    getServer().concat("/function/faas-flow-dashboard/flow/request/monitor?flow-name="
+                        + flowName + "&request=" + requestId);
+            } else {
+                document.getElementById("response.monitor").style.visibility = "hidden";
+            }
+
+            document.getElementById("response.body").value = this.responseText;
         }
     };
     xmlHttp.open("POST", url, true);
     xmlHttp.setRequestHeader("Content-Type", contentType);
     xmlHttp.send(data);
-}
+};
 
 // delete the flow function
 function deleteFlow(flowName) {
