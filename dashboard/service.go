@@ -201,3 +201,25 @@ func listRequestTraces(requestTraceId string) (*RequestTrace, error) {
 
 	return trace, nil
 }
+
+// getRequestStatus request the flow for the request status
+func getRequestStatus(function, requestTraceId string) (string, error) {
+	var err error
+
+	c := http.Client{}
+	url := gatewayUrl + "function/" + function + "?state=" + requestTraceId
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+
+	response, err := c.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("failed to get state, %v", err)
+	}
+
+	defer response.Body.Close()
+	bodyBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read state, %v", err)
+	}
+
+	return string(bodyBytes), nil
+}

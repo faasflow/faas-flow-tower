@@ -148,6 +148,15 @@ func flowRequestsPageHandler(w http.ResponseWriter, r *http.Request) {
 				TraceId: traceId,
 			}
 		}
+
+		requestState, err := getRequestStatus(flowName, request)
+		if err != nil {
+			log.Printf("failed to get request state for %s, request %s, error: %v",
+				flowName, request, err)
+			requestState = "UNKNOWN"
+		}
+		requestsList[request].Status = requestState
+
 		tracingEnabled = true
 	}
 
@@ -217,6 +226,15 @@ func flowRequestMonitorPageHandler(w http.ResponseWriter, r *http.Request) {
 				TraceId: traceId,
 			}
 		}
+
+		requestState, err := getRequestStatus(flowName, request)
+		if err != nil {
+			log.Printf("failed to get request state for %s, request %s, error: %v",
+				flowName, request, err)
+			requestState = "UNKNOWN"
+		}
+		requestsList[request].Status = requestState
+
 		tracingEnabled = true
 		if currentRequestID == "" {
 			currentRequestID = request
