@@ -26,8 +26,9 @@ type HtmlObject struct {
 
 // Message API request query
 type Message struct {
-	FlowName string `json:"function"`
-	TraceID  string `json:"trace-id"`
+	FlowName  string `json:"function"`
+	RequestID string `json:"request-id"`
+	TraceID   string `json:"trace-id"`
 }
 
 // dashboardPageHandler handle dashboard view
@@ -403,6 +404,8 @@ func requestTracesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	traceID := msg.TraceID
+	flowName := msg.FlowName
+	requestId := msg.RequestID
 
 	w.Header().Set("Content-Type", jsonType)
 	trace, err := listRequestTraces(traceID)
@@ -410,6 +413,15 @@ func requestTracesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("failed to handle request, error: %v", err), http.StatusInternalServerError)
 		return
 	}
+
+	state, err := getRequestStatus(flowName, requestId)
+	if err != nil {
+		log.Printf("failed to get request state for %s, request %s, error: %v",
+			flowName, requestId, err)
+		state = "UNKNOWN"
+	}
+	trace.Status = state
+
 	data, _ := json.MarshalIndent(trace, "", "    ")
 	w.Write(data)
 	return

@@ -51,20 +51,20 @@ function updateGraph(dag) {
 };
 
 // Load the trace content async and periodic manner
-function loadTraceContent(traceId) {
+function loadTraceContent(flowName, reqId, traceId) {
     let url = getServer();
     url = url.concat("/function/faas-flow-dashboard/api/flow/request/traces");
 
     let reqData = {};
-    reqData["method"] = "request-traces";
+    reqData["function"] = flowName;
     reqData["trace-id"] = traceId;
-
+    reqData["request-id"] = reqId;
     let data = JSON.stringify(reqData);
 
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status != 200) {
-            alert("Failed to get flow details from : " + url);
+            alert("Failed to get flow details from : " + url + this.responseText);
             return;
         }
         if (this.readyState == 4 && this.status == 200) {
@@ -216,9 +216,9 @@ function updateTraceContent(jsonObject) {
 	    drawBarChart(jsonObject);
     });
 
-    d3.select("#exec-duration").text("Duration: " + formatDuration(duration));
-    d3.select("exec-status").text("Status: " + status);
-    d3.select("start-time").text("Start Time: " + formatTime(start_time));
+    document.getElementById("exec-duration").innerHTML = "<b>Duration:</b> " + formatDuration(duration);
+    document.getElementById("exec-status").innerHTML = "<b>Status:</b> " + status;
+    document.getElementById("start-time").innerHTML = "<b>Start Time:</b> " + formatTime(start_time);
 };
 
 

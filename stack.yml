@@ -7,8 +7,9 @@ functions:
   faas-flow-dashboard:
     lang: Dockerfile
     handler: ./dashboard
-    image: s8sg/faas-flow-dashboard:3.0.5
+    image: s8sg/faas-flow-dashboard:3.0.6
     environment:
+      read_debug: true
       write_debug: true
       combine_output: false
     environment_file:
@@ -24,6 +25,7 @@ functions:
     handler: ./list-flow-functions
     image: s8sg/list-flow-functions:1.0.1
     environment:
+      read_debug: true
       write_debug: true
       combine_output: false
     environment_file:
@@ -42,6 +44,7 @@ functions:
       - conf.yml
     environment:
       read_timeout: 120
+      read_debug: true
       write_timeout: 120
       write_debug: true
       combine_output: false
@@ -56,6 +59,7 @@ functions:
     environment_file:
       - conf.yml
     environment:
+      read_debug: true
       read_timeout: 120
       write_timeout: 120
       write_debug: true
