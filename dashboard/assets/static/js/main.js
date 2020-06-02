@@ -50,6 +50,12 @@ function updateGraph(dag) {
         .renderDot(dag);
 };
 
+// show a alert in dash-board
+function triggerAlert(alertText, bsStyle) {
+    document.getElementById("alert.container").innerHTML = '<div class="alert alert-' + bsStyle + ' fade show">' +
+        '<button type="button" class="close" data-dismiss="alert"> &times;</button>' + alertText + '</div>';
+};
+
 // Load the trace content async and periodic manner
 function loadTraceContent(flowName, reqId, traceId) {
     let url = getServer();
@@ -64,7 +70,7 @@ function loadTraceContent(flowName, reqId, traceId) {
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status != 200) {
-            alert("Failed to get flow details from : " + url + this.responseText);
+            triggerAlert("Failed to get flow details; " + this.responseText, 'danger');
             return;
         }
         if (this.readyState == 4 && this.status == 200) {
@@ -110,6 +116,8 @@ function executeFlow(flowName) {
 
 // delete the flow function
 function deleteFlow(flowName) {
+    $('#deleteModal').modal('hide');
+
     let url = getServer();
     url = url.concat("/function/faas-flow-dashboard/api/flow/delete");
 
@@ -120,11 +128,11 @@ function deleteFlow(flowName) {
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status != 200) {
-            alert("Failed to delete flow: " + flowName);
+            triggerAlert("Failed to delete flow: " + flowName, "danger");
             return;
         }
         if (this.readyState == 4 && this.status == 200) {
-            alert("Deleted flow: " + flowName);
+            triggerAlert("Deleted flow: " + flowName, "info");
             return;
         }
     };
