@@ -114,6 +114,93 @@ function executeFlow(flowName) {
     xmlHttp.send(data);
 };
 
+// stop the request
+function stopRequest(flowName, request) {
+    let url = getServer();
+    url = url.concat("/function/" + flowName + "?stop-flow=" + request);
+
+    let html = document.getElementById("exec-status").innerHTML;
+    if (!(html.includes("RUNNING") || html.includes("PAUSED"))) {
+        triggerAlert("Can't stop request: <b>" + request + "</b>, must be in <b>ACTIVE</b> states", 'info');
+        return;
+    }
+
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status != 200) {
+            triggerAlert("Failed to stop the request: <b>" + request + "</b>", 'danger');
+            return;
+        }
+        if (this.readyState == 4 && this.status == 200) {
+            triggerAlert("Request: <b>" + request + "</b> has been stopped", 'success');
+            return;
+        }
+    };
+
+    xmlHttp.open("GET", url, true);
+    xmlHttp.setRequestHeader('accept', "application/json");
+    xmlHttp.setRequestHeader("Content-Type", "application/json");
+    xmlHttp.send();
+};
+
+// pause the request
+function pauseRequest(flowName, request) {
+    let url = getServer();
+    url = url.concat("/function/" + flowName + "?pause-flow=" + request);
+
+    let html = document.getElementById("exec-status").innerHTML;
+    if (!html.includes("RUNNING")) {
+        triggerAlert("Can't pause request: <b>" + request + "</b>, must be <b>RUNNING</b>", 'info');
+        return;
+    }
+
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status != 200) {
+            triggerAlert("Failed to pause the request: <b>" + request + "</b>", 'danger');
+            return;
+        }
+        if (this.readyState == 4 && this.status == 200) {
+            triggerAlert("Request: <b>" + request + "</b> has been paused!", 'success');
+            return;
+        }
+    };
+
+    xmlHttp.open("GET", url, true);
+    xmlHttp.setRequestHeader('accept', "application/json");
+    xmlHttp.setRequestHeader("Content-Type", "application/json");
+    xmlHttp.send();
+};
+
+// pause the request
+function resumeRequest(flowName, request) {
+    let url = getServer();
+    url = url.concat("/function/" + flowName + "?resume-flow=" + request);
+
+    let html = document.getElementById("exec-status").innerHTML;
+    if (!html.includes("PAUSED")) {
+        triggerAlert("Can't resume request: <b>" + request +"</b>, must be <b>PAUSED</b>", 'info');
+        return;
+    }
+
+    let xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status != 200) {
+            triggerAlert("Failed to resume the request: <b>" + request + "</b>", 'danger');
+            return;
+        }
+        if (this.readyState == 4 && this.status == 200) {
+            triggerAlert("Request: <b>" + request + "</b> has been resumed", 'success');
+            return;
+        }
+    };
+
+    xmlHttp.open("GET", url, true);
+    xmlHttp.setRequestHeader('accept', "application/json");
+    xmlHttp.setRequestHeader("Content-Type", "application/json");
+    xmlHttp.send();
+};
+
 // delete the flow function
 function deleteFlow(flowName) {
     $('#deleteModal').modal('hide');
@@ -128,11 +215,11 @@ function deleteFlow(flowName) {
     let xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status != 200) {
-            triggerAlert("Failed to delete flow: " + flowName, "danger");
+            triggerAlert("Failed to delete flow: <b>" + flowName + "</b>", "danger");
             return;
         }
         if (this.readyState == 4 && this.status == 200) {
-            triggerAlert("Deleted flow: " + flowName, "info");
+            triggerAlert("Deleted flow: <b>" + flowName + "</b>", "success");
             return;
         }
     };

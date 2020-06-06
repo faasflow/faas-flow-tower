@@ -30,17 +30,17 @@
 		    <li class="list-group-item" id="exec-status"><b>Status:</b> {{ .Traces.Status }} </li>
         </ul>
         <div class="card-body">
-           <a id="stop-request" href="#"
+           <a id="stop-request" href="#" onclick="return stopRequest('{{ .Requests.Flow }}', '{{ .Traces.RequestID }}');"
                class="card-link btn btn-danger" data-toggle="tooltip" title="Click to stop the request">
                <i class="fa fa-stop"></i>
                Stop
            </a>
-           <a id="pause-request" href="#"
+           <a id="pause-request" href="#" onclick="return pauseRequest('{{ .Requests.Flow }}', '{{ .Traces.RequestID }}');"
                class="card-link btn btn-warning" data-toggle="tooltip" title="Click to pause the request">
                <i class="fa fa-pause"></i>
                Pause
            </a>
-           <a id="resume-request" href="#"
+           <a id="resume-request" href="#" onclick="return resumeRequest('{{ .Requests.Flow }}', '{{ .Traces.RequestID }}');"
                class="card-link btn btn-success" data-toggle="tooltip" title="Click to resume the request">
                <i class="fa fa-play"></i>
                Resume
